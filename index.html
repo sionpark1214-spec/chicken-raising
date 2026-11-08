@@ -5,19 +5,712 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>치킨 키우기</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #f0f0f0;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
+            background: #87CEEB;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
         }
-        h1 { font-size: 2rem; }
+
+        #game {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 40%, #7BC043 40%, #5a9e2f 100%);
+        }
+
+        /* 상단 리소스 바 */
+        #top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 100;
+        }
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .resource-icon { font-size: 18px; }
+
+        /* 울타리 영역 */
+        #pen {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 6px solid #8B4513;
+            border-radius: 12px;
+            background: #90C44E;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.3);
+            transition: width 0.5s, height 0.5s;
+            overflow: hidden;
+        }
+        #pen::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(0,0,0,0.05) 0%, transparent 40%);
+        }
+
+        /* 닭 스프라이트 */
+        .chicken {
+            position: absolute;
+            transition: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .chicken .body {
+            font-size: 32px;
+            display: block;
+            animation: bob 0.8s ease-in-out infinite;
+        }
+        .chicken.egg .body { font-size: 24px; animation: wobble 2s ease-in-out infinite; }
+        .chicken.chick .body { font-size: 22px; }
+        .chicken.young .body { font-size: 28px; }
+        .chicken.adult .body { font-size: 36px; }
+
+        .chicken .needs {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2px;
+            font-size: 12px;
+        }
+        .need-icon {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .chicken .progress-bar {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 4px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 2px;
+        }
+        .chicken .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 떠오르는 텍스트 */
+        .float-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 200;
+            animation: floatUp 1.2s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        /* 하단 액션 버튼 */
+        #bottom-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            display: flex;
+            gap: 6px;
+            padding: 10px 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: transform 0.1s, filter 0.1s;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-buy { background: #E91E63; }
+        .btn-water { background: #2196F3; }
+        .btn-feed { background: #FF9800; }
+        .btn-collect { background: #9C27B0; }
+        .btn-upgrade { background: #4CAF50; }
+        .btn-sell { background: #795548; }
+
+        .btn .price {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* 메시지 */
+        #message {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        #message.show { opacity: 1; }
+
+        /* 울타리 레벨 표시 */
+        #pen-label {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #8B4513;
+            color: #fff;
+            padding: 2px 12px;
+            border-radius: 8px 8px 0 0;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* 태양 */
+        #sun {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 50px;
+            animation: sunPulse 3s ease-in-out infinite;
+            z-index: 1;
+        }
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 구름 */
+        .cloud {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.7;
+            z-index: 1;
+            animation: drift 20s linear infinite;
+        }
+        @keyframes drift {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+
+        /* 알 수집 이펙트 */
+        .egg-collect {
+            position: absolute;
+            font-size: 20px;
+            z-index: 200;
+            animation: eggFly 0.8s ease-in forwards;
+        }
+        @keyframes eggFly {
+            0% { opacity: 1; }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+        }
+
+        /* 시작 화면 */
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #FFB347 0%, #FF6B6B 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+        #start-screen h1 {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        #start-screen .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        #start-screen .chickens-anim {
+            font-size: 60px;
+            margin-bottom: 30px;
+            animation: bob 1s ease-in-out infinite;
+        }
+        #start-btn {
+            padding: 16px 48px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            background: #fff;
+            color: #FF6B6B;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        #start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body>
-    <h1>🐔 치킨 키우기</h1>
+<div id="game">
+    <!-- 시작 화면 -->
+    <div id="start-screen">
+        <div class="chickens-anim">🐔🐣🥚</div>
+        <h1>치킨 키우기</h1>
+        <p class="subtitle">병아리부터 키워 나만의 농장을 만들자!</p>
+        <button id="start-btn" onclick="startGame()">게임 시작</button>
+    </div>
+
+    <!-- 배경 -->
+    <div id="sun">☀️</div>
+    <div class="cloud" style="top:60px; left:-50px; animation-duration:25s;">☁️</div>
+    <div class="cloud" style="top:100px; left:-150px; animation-duration:35s; animation-delay:5s;">☁️</div>
+    <div class="cloud" style="top:40px; left:-200px; animation-duration:30s; animation-delay:12s;">☁️</div>
+
+    <!-- 상단 리소스 -->
+    <div id="top-bar">
+        <div class="resource"><span class="resource-icon">💰</span><span id="money">0</span>원</div>
+        <div class="resource"><span class="resource-icon">💧</span><span id="water">0</span></div>
+        <div class="resource"><span class="resource-icon">🌾</span><span id="feed">0</span></div>
+        <div class="resource"><span class="resource-icon">🥚</span><span id="eggs">0</span></div>
+        <div class="resource"><span class="resource-icon">🐔</span><span id="count">0</span>/<span id="max-count">4</span></div>
+    </div>
+
+    <!-- 울타리 -->
+    <div id="pen">
+        <div id="pen-label">울타리 Lv.1</div>
+    </div>
+
+    <!-- 메시지 -->
+    <div id="message"></div>
+
+    <!-- 하단 버튼 -->
+    <div id="bottom-bar">
+        <button class="btn btn-buy" onclick="buyChick()">🐣 병아리 사기<span class="price">(100원)</span></button>
+        <button class="btn btn-water" onclick="buyWater()">💧 물 사기<span class="price">(30원)</span></button>
+        <button class="btn btn-feed" onclick="buyFeed()">🌾 사료 사기<span class="price">(50원)</span></button>
+        <button class="btn btn-water" onclick="giveWater()">💧 물 주기</button>
+        <button class="btn btn-feed" onclick="giveFeed()">🌾 먹이 주기</button>
+        <button class="btn btn-collect" onclick="collectEggs()">🥚 알 수집</button>
+        <button class="btn btn-sell" onclick="sellEggs()">🥚 알 팔기<span class="price">(80원)</span></button>
+        <button class="btn btn-upgrade" onclick="upgradePen()">🔨 울타리 확장</button>
+    </div>
+</div>
+
+<script>
+const STAGES = {
+    egg:   { emoji: '🥚', name: '알',     growTime: 8000,  nextStage: 'chick' },
+    chick: { emoji: '🐣', name: '병아리', growTime: 15000, nextStage: 'young' },
+    young: { emoji: '🐥', name: '중병아리', growTime: 20000, nextStage: 'adult' },
+    adult: { emoji: '🐔', name: '성닭',   growTime: null,  nextStage: null }
+};
+
+let state = {
+    money: 500,
+    water: 5,
+    feed: 5,
+    storedEggs: 0,
+    penLevel: 1,
+    chickens: [],
+    nextId: 0
+};
+
+const penSizes = [
+    { w: 280, h: 200, max: 4 },
+    { w: 360, h: 260, max: 8 },
+    { w: 440, h: 320, max: 14 },
+    { w: 520, h: 380, max: 22 },
+    { w: 600, h: 440, max: 32 },
+];
+const penUpgradeCost = [0, 300, 800, 2000, 5000];
+
+let gameStarted = false;
+let msgTimer = null;
+
+function getPenConfig() {
+    return penSizes[Math.min(state.penLevel - 1, penSizes.length - 1)];
+}
+
+function showMsg(text) {
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.classList.add('show');
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function floatText(x, y, text, color = '#fff') {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = color;
+    document.getElementById('game').appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+}
+
+function updateUI() {
+    document.getElementById('money').textContent = state.money;
+    document.getElementById('water').textContent = state.water;
+    document.getElementById('feed').textContent = state.feed;
+    document.getElementById('eggs').textContent = state.storedEggs;
+
+    const liveCount = state.chickens.filter(c => c.stage !== 'egg' || c.fromHen).length;
+    const penCfg = getPenConfig();
+    document.getElementById('count').textContent = state.chickens.length;
+    document.getElementById('max-count').textContent = penCfg.max;
+
+    const pen = document.getElementById('pen');
+    pen.style.width = penCfg.w + 'px';
+    pen.style.height = penCfg.h + 'px';
+    document.getElementById('pen-label').textContent =
+        `울타리 Lv.${state.penLevel} (${state.chickens.length}/${penCfg.max}마리)`;
+}
+
+function addChickenEl(chicken) {
+    const pen = document.getElementById('pen');
+    const penCfg = getPenConfig();
+
+    const el = document.createElement('div');
+    el.className = `chicken ${chicken.stage}`;
+    el.id = `chicken-${chicken.id}`;
+    el.style.left = chicken.x + 'px';
+    el.style.top = chicken.y + 'px';
+
+    el.innerHTML = `
+        <div class="needs"></div>
+        <span class="body">${STAGES[chicken.stage].emoji}</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    `;
+
+    el.addEventListener('click', () => onClickChicken(chicken.id));
+    pen.appendChild(el);
+}
+
+function createChicken(stage, x, y) {
+    const penCfg = getPenConfig();
+    const id = state.nextId++;
+    const chicken = {
+        id,
+        stage,
+        x: x ?? Math.random() * (penCfg.w - 50) + 10,
+        y: y ?? Math.random() * (penCfg.h - 60) + 20,
+        hunger: 100,
+        thirst: 100,
+        growth: 0,
+        eggTimer: 0,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        layReady: false,
+        fromHen: false
+    };
+    state.chickens.push(chicken);
+    addChickenEl(chicken);
+    return chicken;
+}
+
+function onClickChicken(id) {
+    const c = state.chickens.find(ch => ch.id === id);
+    if (!c) return;
+    const info = STAGES[c.stage];
+    let status = `${info.name}`;
+    if (c.stage !== 'adult') {
+        status += ` | 성장: ${Math.floor(c.growth)}%`;
+    }
+    status += ` | 배고픔: ${Math.floor(c.hunger)}% | 목마름: ${Math.floor(c.thirst)}%`;
+    if (c.layReady) status += ' | 🥚 알 수집 가능!';
+    showMsg(status);
+}
+
+function buyChick() {
+    if (state.money < 100) return showMsg('돈이 부족합니다!');
+    const penCfg = getPenConfig();
+    if (state.chickens.length >= penCfg.max) return showMsg('울타리가 꽉 찼습니다! 확장하세요.');
+    state.money -= 100;
+    createChicken('chick');
+    showMsg('🐣 병아리를 샀습니다!');
+    updateUI();
+}
+
+function buyWater() {
+    if (state.money < 30) return showMsg('돈이 부족합니다!');
+    state.money -= 30;
+    state.water += 5;
+    showMsg('💧 물 5개 구매!');
+    updateUI();
+}
+
+function buyFeed() {
+    if (state.money < 50) return showMsg('돈이 부족합니다!');
+    state.money -= 50;
+    state.feed += 5;
+    showMsg('🌾 사료 5개 구매!');
+    updateUI();
+}
+
+function giveWater() {
+    if (state.water <= 0) return showMsg('물이 없습니다! 먼저 구매하세요.');
+    const thirsty = state.chickens.filter(c => c.thirst < 80 && c.stage !== 'egg');
+    if (thirsty.length === 0) return showMsg('목마른 닭이 없습니다!');
+    const count = Math.min(state.water, thirsty.length);
+    for (let i = 0; i < count; i++) {
+        thirsty[i].thirst = Math.min(100, thirsty[i].thirst + 40);
+        const el = document.getElementById(`chicken-${thirsty[i].id}`);
+        if (el) {
+            const rect = el.getBoundingClientRect();
+            floatText(rect.left, rect.top - 10, '💧', '#2196F3');
+        }
+    }
+    state.water -= count;
+    showMsg(`💧 ${count}마리에게 물을 줬습니다!`);
+    updateUI();
+}
+
+function giveFeed() {
+    if (state.feed <= 0) return showMsg('사료가 없습니다! 먼저 구매하세요.');
+    const hungry = state.chickens.filter(c => c.hunger < 80 && c.stage !== 'egg');
+    if (hungry.length === 0) return showMsg('배고픈 닭이 없습니다!');
+    const count = Math.min(state.feed, hungry.length);
+    for (let i = 0; i < count; i++) {
+        hungry[i].hunger = Math.min(100, hungry[i].hunger + 40);
+        const el = document.getElementById(`chicken-${hungry[i].id}`);
+        if (el) {
+            const rect = el.getBoundingClientRect();
+            floatText(rect.left, rect.top - 10, '🌾', '#FF9800');
+        }
+    }
+    state.feed -= count;
+    showMsg(`🌾 ${count}마리에게 먹이를 줬습니다!`);
+    updateUI();
+}
+
+function collectEggs() {
+    const layers = state.chickens.filter(c => c.layReady);
+    if (layers.length === 0) return showMsg('수집할 알이 없습니다!');
+
+    let collected = 0;
+    layers.forEach(c => {
+        c.layReady = false;
+        c.eggTimer = 0;
+        collected++;
+
+        const penCfg = getPenConfig();
+        if (state.chickens.length < penCfg.max && Math.random() < 0.5) {
+            const egg = createChicken('egg', c.x + 15, c.y + 15);
+            egg.fromHen = true;
+        } else {
+            state.storedEggs++;
+        }
+    });
+
+    showMsg(`🥚 알 ${collected}개 수집! (일부는 부화 중)`);
+    updateUI();
+}
+
+function sellEggs() {
+    if (state.storedEggs <= 0) return showMsg('팔 알이 없습니다!');
+    const earn = state.storedEggs * 80;
+    state.money += earn;
+    showMsg(`🥚 알 ${state.storedEggs}개를 ${earn}원에 팔았습니다!`);
+    state.storedEggs = 0;
+    updateUI();
+}
+
+function upgradePen() {
+    if (state.penLevel >= penSizes.length) return showMsg('최대 레벨입니다!');
+    const cost = penUpgradeCost[state.penLevel];
+    if (state.money < cost) return showMsg(`돈이 부족합니다! (${cost}원 필요)`);
+    state.money -= cost;
+    state.penLevel++;
+    showMsg(`🔨 울타리를 Lv.${state.penLevel}로 확장했습니다!`);
+    updateUI();
+}
+
+function gameLoop() {
+    if (!gameStarted) return;
+    const dt = 100;
+    const penCfg = getPenConfig();
+
+    state.chickens.forEach(c => {
+        // 이동
+        if (c.stage !== 'egg') {
+            if (Math.random() < 0.02) {
+                c.vx = (Math.random() - 0.5) * 1.0;
+                c.vy = (Math.random() - 0.5) * 1.0;
+            }
+            c.x += c.vx;
+            c.y += c.vy;
+            c.x = Math.max(5, Math.min(penCfg.w - 45, c.x));
+            c.y = Math.max(20, Math.min(penCfg.h - 50, c.y));
+            if (c.x <= 5 || c.x >= penCfg.w - 45) c.vx *= -1;
+            if (c.y <= 20 || c.y >= penCfg.h - 50) c.vy *= -1;
+        }
+
+        // 허기/갈증 감소
+        if (c.stage !== 'egg') {
+            c.hunger = Math.max(0, c.hunger - 0.15);
+            c.thirst = Math.max(0, c.thirst - 0.2);
+        }
+
+        // 성장
+        const stageInfo = STAGES[c.stage];
+        if (stageInfo.growTime && c.hunger > 20 && c.thirst > 20) {
+            c.growth += (dt / stageInfo.growTime) * 100;
+            if (c.growth >= 100) {
+                c.stage = stageInfo.nextStage;
+                c.growth = 0;
+                const el = document.getElementById(`chicken-${c.id}`);
+                if (el) {
+                    el.className = `chicken ${c.stage}`;
+                    el.querySelector('.body').textContent = STAGES[c.stage].emoji;
+                    const rect = el.getBoundingClientRect();
+                    floatText(rect.left, rect.top - 20, '⬆️ 성장!', '#FFD700');
+                }
+            }
+        }
+
+        // 성닭 알 낳기
+        if (c.stage === 'adult' && !c.layReady && c.hunger > 30 && c.thirst > 30) {
+            c.eggTimer += dt;
+            if (c.eggTimer >= 12000) {
+                c.layReady = true;
+                const el = document.getElementById(`chicken-${c.id}`);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    floatText(rect.left, rect.top - 20, '🥚 알 낳음!', '#9C27B0');
+                }
+            }
+        }
+
+        // UI 업데이트
+        const el = document.getElementById(`chicken-${c.id}`);
+        if (el) {
+            el.style.left = c.x + 'px';
+            el.style.top = c.y + 'px';
+
+            // 필요 표시
+            const needsEl = el.querySelector('.needs');
+            let needs = '';
+            if (c.stage !== 'egg') {
+                if (c.thirst < 30) needs += '<span class="need-icon">💧</span>';
+                if (c.hunger < 30) needs += '<span class="need-icon">🌾</span>';
+                if (c.layReady) needs += '<span class="need-icon">🥚</span>';
+            }
+            needsEl.innerHTML = needs;
+
+            // 성장 바
+            const fill = el.querySelector('.progress-fill');
+            if (STAGES[c.stage].growTime) {
+                el.querySelector('.progress-bar').style.display = 'block';
+                fill.style.width = c.growth + '%';
+                if (c.hunger <= 20 || c.thirst <= 20) {
+                    fill.style.background = '#f44336';
+                } else {
+                    fill.style.background = '#4CAF50';
+                }
+            } else {
+                el.querySelector('.progress-bar').style.display = 'none';
+            }
+
+            // 방향에 따라 뒤집기
+            if (c.vx < 0) {
+                el.querySelector('.body').style.transform = 'scaleX(-1)';
+            } else if (c.vx > 0) {
+                el.querySelector('.body').style.transform = 'scaleX(1)';
+            }
+        }
+    });
+
+    updateUI();
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    gameStarted = true;
+    updateUI();
+    showMsg('🐔 농장 생활을 시작합니다! 병아리를 사보세요!');
+}
+
+setInterval(gameLoop, 100);
+
+// 자동 저장
+function saveGame() {
+    localStorage.setItem('chickenGame', JSON.stringify(state));
+}
+function loadGame() {
+    const saved = localStorage.getItem('chickenGame');
+    if (saved) {
+        try {
+            const loaded = JSON.parse(saved);
+            state = loaded;
+            const pen = document.getElementById('pen');
+            state.chickens.forEach(c => addChickenEl(c));
+            updateUI();
+            return true;
+        } catch(e) {}
+    }
+    return false;
+}
+
+setInterval(saveGame, 5000);
+
+document.getElementById('start-btn').addEventListener('click', () => {
+    if (!loadGame()) {
+        state.money = 500;
+        state.water = 5;
+        state.feed = 5;
+    }
+});
+</script>
 </body>
 </html>
