@@ -194,6 +194,17 @@
         #start-btn { padding: 14px 44px; font-size: 20px; font-weight: bold; border: none; border-radius: 14px; background: #fff; color: #FF6B6B; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
         #start-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
 
+        .btn.active-mode { outline: 3px solid #FFD700; animation: pulse 0.8s ease-in-out infinite; }
+        #game.mode-fence { cursor: crosshair; }
+        #game.mode-fence #pen { outline: 3px dashed rgba(255,255,255,0.6); outline-offset: 15px; }
+        #game.mode-upgrade #pen { cursor: pointer; outline: 3px dashed #FFD700; outline-offset: 5px; }
+        #mode-hint {
+            display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,120,0,0.8); color: #fff; padding: 5px 14px; border-radius: 12px;
+            font-size: 13px; font-weight: bold; z-index: 150; white-space: nowrap;
+        }
+        #mode-hint.show { display: block; }
+
         #cat-warning {
             display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
             background: rgba(200,0,0,0.8); color: #fff; padding: 5px 14px; border-radius: 12px;
@@ -232,6 +243,7 @@
     </div>
 
     <div id="message"></div>
+    <div id="mode-hint"></div>
     <div id="cat-warning">🐱 고양이다! 빨리 터치해서 쫓아내!</div>
 
     <div id="bottom-bar">
@@ -241,8 +253,8 @@
         <button class="btn btn-berry" onclick="giveBerry()">🫐 열매<span class="price">(50)</span></button>
         <button class="btn btn-fish" onclick="giveFish()">🐟 생선<span class="price">(80)</span></button>
         <button class="btn btn-sell" onclick="sellEgg()">🥚 팔기<span class="price">(80원)</span></button>
-        <button class="btn btn-expand" onclick="expandPen()">📐 확장</button>
-        <button class="btn btn-fence" onclick="upgradeFence()">🛡️ 강화</button>
+        <button class="btn btn-expand" id="btn-fence" onclick="toggleFenceMode()">🏗️ 울타리</button>
+        <button class="btn btn-fence" id="btn-upgrade" onclick="toggleUpgradeMode()">🛡️ 강화</button>
         <button class="btn btn-code" onclick="openCodeModal()">🔑 코드</button>
     </div>
 
@@ -608,18 +620,52 @@ function sellEgg() {
     showMsg('알을 먼저 클릭해서 선택하세요!');
 }
 
-function expandPen() {
+// ===== 울타리 모드 시스템 =====
+let currentMode = null;
+
+function setMode(mode) {
+    currentMode = mode;
+    const game = document.getElementById('game');
+    game.classList.remove('mode-fence','mode-upgrade');
+    document.querySelectorAll('.btn.active-mode').forEach(b => b.classList.remove('active-mode'));
+    const hint = document.getElementById('mode-hint');
+
+    if (mode === 'place_fence') {
+        game.classList.add('mode-fence');
+        const bf = document.getElementById('btn-fence');
+        if (bf) bf.classList.add('active-mode');
+        if (state.penLevel >= penSizes.length) { showMsg('최대 크기!'); currentMode=null; game.classList.remove('mode-fence'); return; }
+        const cost = penExpandCost[state.penLevel];
+        hint.textContent = `🏗️ 땅을 터치하면 울타리 설치! (${cost}원)`;
+        hint.classList.add('show');
+    } else if (mode === 'upgrade_fence') {
+        game.classList.add('mode-upgrade');
+        const bu = document.getElementById('btn-upgrade');
+        if (bu) bu.classList.add('active-mode');
+        if (state.fenceLevel >= FENCE_TYPES.length) { showMsg('최고급 울타리!'); currentMode=null; game.classList.remove('mode-upgrade'); return; }
+        const next = FENCE_TYPES[state.fenceLevel];
+        hint.textContent = `🛡️ 울타리를 터치하면 강화! (${next.cost}원)`;
+        hint.classList.add('show');
+    } else {
+        hint.classList.remove('show');
+    }
+}
+
+function toggleFenceMode() { setMode(currentMode === 'place_fence' ? null : 'place_fence'); }
+function toggleUpgradeMode() { setMode(currentMode === 'upgrade_fence' ? null : 'upgrade_fence'); }
+
+function doExpandPen() {
     if (state.penLevel >= penSizes.length) return showMsg('최대 크기!');
     const cost = penExpandCost[state.penLevel];
     if (state.money < cost) return showMsg(`${cost}원 필요!`);
     state.money -= cost;
     state.penLevel++;
     buildFence();
-    showMsg(`📐 울타리 확장 Lv.${state.penLevel}!`);
+    showMsg(`🏗️ 울타리 확장 Lv.${state.penLevel}!`);
     updateUI();
 }
 
-function upgradeFence() {
+function doUpgradeFence() {
     if (state.fenceLevel >= FENCE_TYPES.length) return showMsg('최고급 울타리!');
     const next = FENCE_TYPES[state.fenceLevel];
     if (state.money < next.cost) return showMsg(`${next.cost}원 필요!`);
@@ -630,6 +676,21 @@ function upgradeFence() {
     showMsg(`🛡️ ${ft.name} 울타리로 강화!`);
     updateUI();
 }
+
+document.getElementById('game').addEventListener('click', function(e) {
+    if (!currentMode || !gameStarted) return;
+    if (e.target.closest('#bottom-bar') || e.target.closest('#top-bar') || e.target.closest('#code-modal') || e.target.closest('#start-screen')) return;
+
+    if (currentMode === 'place_fence') {
+        doExpandPen();
+        setMode(null);
+    } else if (currentMode === 'upgrade_fence') {
+        if (e.target.closest('#pen')) {
+            doUpgradeFence();
+            setMode(null);
+        }
+    }
+});
 
 // ===== 고양이 =====
 function spawnCat() {
