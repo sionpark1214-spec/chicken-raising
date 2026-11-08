@@ -27,6 +27,10 @@
             transition: width 0.5s, height 0.5s;
             overflow: visible;
         }
+        #pen.fence-none { background: #a0d44a; box-shadow: none; }
+        #pen.fence-none .fence-rail-h, #pen.fence-none .fence-rail-v { display: none; }
+        #pen.fence-none .fence-post { display: none; }
+        #pen.fence-none #pen-label { background: #c0392b; }
         #pen.fence-wood { background: #8fbe3f; }
         #pen.fence-stone { background: #7a9e35; }
         #pen.fence-iron { background: #6d9030; }
@@ -420,22 +424,23 @@ const STAGES = {
 };
 
 const penSizes = [
-    { w:300, h:220, max:5 },
-    { w:380, h:280, max:10 },
-    { w:460, h:340, max:16 },
-    { w:540, h:400, max:24 },
-    { w:620, h:460, max:34 },
+    { w:420, h:300, max:8 },
+    { w:540, h:380, max:15 },
+    { w:660, h:450, max:24 },
+    { w:760, h:520, max:35 },
+    { w:860, h:580, max:50 },
 ];
-const penExpandCost = [0, 500, 1200, 3000, 7000];
+const penExpandCost = [0, 600, 1500, 4000, 9000];
 
 const FENCE_TYPES = [
-    { name:'나무', cls:'fence-wood', breakTime:3000, cost:0 },
-    { name:'돌',   cls:'fence-stone', breakTime:6000, cost:600 },
-    { name:'철',   cls:'fence-iron', breakTime:12000, cost:2500 },
-    { name:'금',   cls:'fence-gold', breakTime:20000, cost:8000 },
+    { name:'없음', cls:'fence-none', hp:0, cost:0 },
+    { name:'나무', cls:'fence-wood', hp:60, cost:200 },
+    { name:'돌',   cls:'fence-stone', hp:120, cost:800 },
+    { name:'철',   cls:'fence-iron', hp:250, cost:3000 },
+    { name:'금',   cls:'fence-gold', hp:500, cost:9000 },
 ];
 
-let state = { money:700, penLevel:1, fenceLevel:1, chickens:[], nextId:0, catKills:0 };
+let state = { money:700, penLevel:1, fenceLevel:1, fenceHp:60, chickens:[], nextId:0, catKills:0 };
 let gameStarted = false;
 let msgTimer = null;
 let cats = [];
@@ -444,7 +449,7 @@ let selectedEggId = null;
 let incomeCounter = 0;
 
 function getPenConfig() { return penSizes[Math.min(state.penLevel-1, penSizes.length-1)]; }
-function getFenceType() { return FENCE_TYPES[Math.min(state.fenceLevel-1, FENCE_TYPES.length-1)]; }
+function getFenceType() { return FENCE_TYPES[Math.max(0, Math.min(state.fenceLevel, FENCE_TYPES.length-1))]; }
 
 // ===== UI =====
 function showMsg(t) {
@@ -468,6 +473,7 @@ function buildFence() {
     const cfg = getPenConfig();
     const ft = getFenceType();
     pen.className = ft.cls;
+    if (state.fenceLevel <= 0) return;
     const postCount = Math.floor(cfg.w / 28);
     for (let i = 0; i <= postCount; i++) {
         const x = (i / postCount) * (cfg.w - 10);
@@ -502,8 +508,14 @@ function updateUI() {
     const pen = document.getElementById('pen');
     pen.style.width = cfg.w+'px'; pen.style.height = cfg.h+'px';
     const ft = getFenceType();
-    document.getElementById('pen-label').textContent =
-        `${ft.name} 울타리 Lv.${state.penLevel} (${state.chickens.length}/${cfg.max})`;
+    if (state.fenceLevel <= 0) {
+        document.getElementById('pen-label').textContent =
+            `⚠️ 울타리 없음! 강화로 재건 (${state.chickens.length}/${cfg.max})`;
+    } else {
+        const hpPct = Math.floor(state.fenceHp / ft.hp * 100);
+        document.getElementById('pen-label').textContent =
+            `${ft.name} 울타리 HP:${hpPct}% Lv.${state.penLevel} (${state.chickens.length}/${cfg.max})`;
+    }
 }
 
 // ===== 닭 =====
@@ -642,9 +654,13 @@ function setMode(mode) {
         game.classList.add('mode-upgrade');
         const bu = document.getElementById('btn-upgrade');
         if (bu) bu.classList.add('active-mode');
-        if (state.fenceLevel >= FENCE_TYPES.length) { showMsg('최고급 울타리!'); currentMode=null; game.classList.remove('mode-upgrade'); return; }
-        const next = FENCE_TYPES[state.fenceLevel];
-        hint.textContent = `🛡️ 울타리를 터치하면 강화! (${next.cost}원)`;
+        if (state.fenceLevel >= FENCE_TYPES.length-1) { showMsg('최고급 울타리!'); currentMode=null; game.classList.remove('mode-upgrade'); return; }
+        const next = FENCE_TYPES[state.fenceLevel+1];
+        if (state.fenceLevel <= 0) {
+            hint.textContent = `🛡️ 터치해서 ${next.name} 울타리 재건! (${next.cost}원)`;
+        } else {
+            hint.textContent = `🛡️ 울타리를 터치하면 ${next.name}으로 강화! (${next.cost}원)`;
+        }
         hint.classList.add('show');
     } else {
         hint.classList.remove('show');
@@ -666,14 +682,15 @@ function doExpandPen() {
 }
 
 function doUpgradeFence() {
-    if (state.fenceLevel >= FENCE_TYPES.length) return showMsg('최고급 울타리!');
-    const next = FENCE_TYPES[state.fenceLevel];
+    if (state.fenceLevel >= FENCE_TYPES.length-1) return showMsg('최고급 울타리!');
+    const next = FENCE_TYPES[state.fenceLevel+1];
     if (state.money < next.cost) return showMsg(`${next.cost}원 필요!`);
     state.money -= next.cost;
     state.fenceLevel++;
+    state.fenceHp = FENCE_TYPES[state.fenceLevel].hp;
     buildFence();
     const ft = getFenceType();
-    showMsg(`🛡️ ${ft.name} 울타리로 강화!`);
+    showMsg(state.fenceLevel===1 ? `🛡️ ${ft.name} 울타리 설치!` : `🛡️ ${ft.name} 울타리로 강화!`);
     updateUI();
 }
 
@@ -703,20 +720,26 @@ function spawnCat() {
     else if (side===2) { x=Math.random()*(innerW-40); y=-10; }
     else { x=Math.random()*(innerW-40); y=innerH-30; }
 
-    const ft = getFenceType();
-    const cat = { id:Date.now(), x, y, clickHp:15, maxHp:15, phase:'breaking', breakTimer:ft.breakTime, maxBreakTime:ft.breakTime };
+    const noFence = state.fenceLevel <= 0;
+    const cat = { id:Date.now(), x, y, clickHp:15, maxHp:15, phase: noFence ? 'inside' : 'breaking' };
     cats.push(cat);
 
     const el = document.createElement('div');
-    el.className = 'cat breaking'; el.id = `cat-${cat.id}`;
+    el.id = `cat-${cat.id}`;
     el.style.left = x+'px'; el.style.top = y+'px';
-    el.innerHTML = `<div class="break-bar"><div class="break-bar-fill" style="width:100%"></div></div><div class="cat-hp"><div class="cat-hp-fill" style="width:100%"></div></div>${catSVG()}`;
+    if (noFence) {
+        el.className = 'cat';
+        el.innerHTML = `<div class="cat-hp"><div class="cat-hp-fill" style="width:100%"></div></div>${catSVG()}`;
+        showMsg('🐱 고양이가 바로 들어왔다! 울타리가 없어!');
+    } else {
+        el.className = 'cat breaking';
+        el.innerHTML = `<div class="break-bar"><div class="break-bar-fill" style="width:100%"></div></div><div class="cat-hp"><div class="cat-hp-fill" style="width:100%"></div></div>${catSVG()}`;
+        document.getElementById('pen').classList.add('shaking');
+        showMsg('🐱 고양이가 울타리를 부수고 있다!');
+    }
     el.addEventListener('click', (e) => { e.stopPropagation(); hitCat(cat.id); });
     document.getElementById('pen-inner').appendChild(el);
-
-    document.getElementById('pen').classList.add('shaking');
     document.getElementById('cat-warning').classList.add('show');
-    showMsg('🐱 고양이가 울타리를 부수고 있다!');
 }
 
 function hitCat(id) {
@@ -776,22 +799,29 @@ function gameLoop() {
         const el = document.getElementById(`cat-${cat.id}`);
 
         if (cat.phase === 'breaking') {
-            cat.breakTimer -= dt;
-            if (el) {
-                const bbf = el.querySelector('.break-bar-fill');
-                if (bbf) bbf.style.width = (cat.breakTimer/cat.maxBreakTime*100)+'%';
-            }
-            if (cat.breakTimer <= 0) {
+            if (state.fenceLevel <= 0) {
                 cat.phase = 'inside';
                 if (el) {
                     el.classList.remove('breaking');
-                    el.querySelector('.break-bar').style.display='none';
+                    const bb = el.querySelector('.break-bar');
+                    if (bb) bb.style.display='none';
                 }
                 document.getElementById('pen').classList.remove('shaking');
-                showMsg('🐱 고양이가 울타리를 뚫고 들어왔다!');
-                const cfg2 = getPenConfig();
-                cat.x = Math.max(5, Math.min(cfg2.w-60, cat.x));
-                cat.y = Math.max(5, Math.min(cfg2.h-60, cat.y));
+            } else {
+                state.fenceHp = Math.max(0, state.fenceHp - 2);
+                if (el) {
+                    const maxHp = FENCE_TYPES[state.fenceLevel].hp;
+                    const bbf = el.querySelector('.break-bar-fill');
+                    if (bbf) bbf.style.width = (state.fenceHp/maxHp*100)+'%';
+                }
+                if (state.fenceHp <= 0) {
+                    state.fenceLevel = 0;
+                    state.fenceHp = 0;
+                    buildFence();
+                    updateUI();
+                    document.getElementById('pen').classList.remove('shaking');
+                    showMsg('💥 울타리가 부서졌다!');
+                }
             }
             if (el) { el.style.left=cat.x+'px'; el.style.top=cat.y+'px'; }
             return;
@@ -995,7 +1025,10 @@ function loadGame() {
         try {
             state = JSON.parse(s);
             if (!state.catKills) state.catKills=0;
-            if (!state.fenceLevel) state.fenceLevel=1;
+            if (!state.fenceLevel && state.fenceLevel!==0) state.fenceLevel=1;
+            if (state.fenceHp===undefined || state.fenceHp===null) {
+                state.fenceHp = state.fenceLevel>0 ? FENCE_TYPES[Math.min(state.fenceLevel,FENCE_TYPES.length-1)].hp : 0;
+            }
             state.chickens.forEach(c => {
                 if (c.energy===undefined) c.energy=100;
                 if (c.sleeping===undefined) c.sleeping=false;
