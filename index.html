@@ -211,6 +211,59 @@
         .btn-collect { background: #9C27B0; }
         .btn-upgrade { background: #4CAF50; }
         .btn-sell { background: #795548; }
+        .btn-code { background: #607D8B; }
+
+        /* 코드 입력 모달 */
+        #code-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 400;
+            justify-content: center;
+            align-items: center;
+        }
+        #code-modal.show { display: flex; }
+        #code-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            min-width: 280px;
+        }
+        #code-box h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+            color: #333;
+        }
+        #code-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            margin-bottom: 12px;
+        }
+        #code-input:focus { border-color: #607D8B; }
+        #code-box .code-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        #code-box .code-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #fff;
+        }
+        .code-btn-ok { background: #4CAF50; }
+        .code-btn-cancel { background: #999; }
 
         .btn .price {
             font-size: 11px;
@@ -377,6 +430,19 @@
         <button class="btn btn-collect" onclick="collectEggs()">🥚 알 수집</button>
         <button class="btn btn-sell" onclick="sellEggs()">🥚 알 팔기<span class="price">(80원)</span></button>
         <button class="btn btn-upgrade" onclick="upgradePen()">🔨 울타리 확장</button>
+        <button class="btn btn-code" onclick="openCodeModal()">🔑 코드 입력</button>
+    </div>
+
+    <!-- 코드 입력 모달 -->
+    <div id="code-modal">
+        <div id="code-box">
+            <h3>🔑 코드 입력</h3>
+            <input type="text" id="code-input" placeholder="코드를 입력하세요" autocomplete="off">
+            <div class="code-btns">
+                <button class="code-btn code-btn-ok" onclick="submitCode()">확인</button>
+                <button class="code-btn code-btn-cancel" onclick="closeCodeModal()">취소</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -490,7 +556,7 @@ const STAGES = {
 };
 
 let state = {
-    money: 500,
+    money: 700,
     water: 5,
     feed: 5,
     storedEggs: 0,
@@ -897,6 +963,59 @@ function loadGame() {
 }
 
 setInterval(saveGame, 5000);
+
+const CODES = {
+    '치킨만세': { money: 1000, msg: '💰 1,000원 획득!' },
+    '부자닭': { money: 5000, msg: '💰 5,000원 획득!' },
+    '물폭탄': { water: 20, msg: '💧 물 20개 획득!' },
+    '사료대방출': { feed: 20, msg: '🌾 사료 20개 획득!' },
+    '풀세트': { money: 3000, water: 15, feed: 15, msg: '🎁 돈 3000 + 물 15 + 사료 15 획득!' },
+    '알부자': { eggs: 10, msg: '🥚 알 10개 획득!' },
+    '치킨이최고': { money: 10000, water: 30, feed: 30, msg: '👑 만원 + 물 30 + 사료 30 대박!' },
+};
+const usedCodes = new Set();
+
+function openCodeModal() {
+    document.getElementById('code-modal').classList.add('show');
+    const input = document.getElementById('code-input');
+    input.value = '';
+    input.focus();
+}
+
+function closeCodeModal() {
+    document.getElementById('code-modal').classList.remove('show');
+}
+
+function submitCode() {
+    const input = document.getElementById('code-input');
+    const code = input.value.trim();
+    if (!code) return;
+
+    if (usedCodes.has(code)) {
+        showMsg('이미 사용한 코드입니다!');
+        closeCodeModal();
+        return;
+    }
+
+    const reward = CODES[code];
+    if (reward) {
+        usedCodes.add(code);
+        if (reward.money) state.money += reward.money;
+        if (reward.water) state.water += reward.water;
+        if (reward.feed) state.feed += reward.feed;
+        if (reward.eggs) state.storedEggs += reward.eggs;
+        showMsg(reward.msg);
+        updateUI();
+    } else {
+        showMsg('잘못된 코드입니다!');
+    }
+    closeCodeModal();
+}
+
+document.getElementById('code-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitCode();
+    if (e.key === 'Escape') closeCodeModal();
+});
 
 document.getElementById('start-btn').addEventListener('click', () => {
     if (!loadGame()) {
