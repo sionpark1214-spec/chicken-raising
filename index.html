@@ -6,19 +6,11 @@
     <title>치킨 키우기</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #87CEEB;
-            overflow: hidden;
-            height: 100vh;
-            user-select: none;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #87CEEB; overflow: hidden; height: 100vh; user-select: none; }
         #game {
             width: 100%; height: 100vh; position: relative;
             background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 40%, #7BC043 40%, #5a9e2f 100%);
         }
-
-        /* 상단 바 */
         #top-bar {
             position: absolute; top: 0; left: 0; right: 0;
             display: flex; justify-content: space-around;
@@ -28,242 +20,184 @@
         .resource { display: flex; align-items: center; gap: 3px; }
         .resource-icon { font-size: 16px; }
 
-        /* 울타리 */
         #pen {
             position: absolute; left: 50%; top: 50%;
             transform: translate(-50%, -50%);
-            border-radius: 8px;
-            background: #8fbe3f;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             transition: width 0.5s, height 0.5s;
             overflow: visible;
         }
+        #pen.fence-wood { background: #8fbe3f; }
+        #pen.fence-stone { background: #7a9e35; }
+        #pen.fence-iron { background: #6d9030; }
+        #pen.fence-gold { background: #85a83a; }
+
         #pen-inner {
-            position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px;
-            background: #a0d44a;
-            border-radius: 4px;
-            overflow: hidden;
+            position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            background: #a0d44a; border-radius: 4px; overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.08);
         }
         #pen-inner::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background:
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(0,0,0,0.04) 0%, transparent 30%);
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(0,0,0,0.04) 0%, transparent 30%);
         }
-        /* 울타리 기둥들 */
+
         .fence-post {
-            position: absolute;
-            width: 8px; height: 20px;
-            background: linear-gradient(90deg, #a0713a, #c4944a, #a0713a);
-            border-radius: 2px 2px 0 0;
-            z-index: 5;
+            position: absolute; z-index: 5;
         }
-        .fence-post.top { top: -12px; }
-        .fence-post.bottom { bottom: -12px; }
-        .fence-post.left { width: 20px; height: 8px; border-radius: 2px 0 0 2px; }
-        .fence-post.right { width: 20px; height: 8px; border-radius: 0 2px 2px 0; }
-        .fence-rail-h {
-            position: absolute; left: 0; right: 0; height: 4px;
-            background: linear-gradient(180deg, #c4944a, #8B6331);
-            z-index: 4;
-        }
-        .fence-rail-h.top-rail { top: -4px; }
-        .fence-rail-h.bot-rail { bottom: -4px; }
-        .fence-rail-v {
-            position: absolute; top: 0; bottom: 0; width: 4px;
-            background: linear-gradient(90deg, #c4944a, #8B6331);
-            z-index: 4;
-        }
-        .fence-rail-v.left-rail { left: -4px; }
-        .fence-rail-v.right-rail { right: -4px; }
+        .fence-post.top, .fence-post.bottom { width: 10px; height: 22px; border-radius: 3px 3px 0 0; }
+        .fence-post.top { top: -14px; }
+        .fence-post.bottom { bottom: -14px; }
+        .fence-post.left, .fence-post.right { width: 22px; height: 10px; border-radius: 3px 0 0 3px; }
+        .fence-post.left { left: -14px; }
+        .fence-post.right { right: -14px; }
+
+        #pen.fence-wood .fence-post { background: linear-gradient(135deg, #c4944a, #8B6331); }
+        #pen.fence-stone .fence-post { background: linear-gradient(135deg, #aaa, #777); }
+        #pen.fence-iron .fence-post { background: linear-gradient(135deg, #8899aa, #445566); }
+        #pen.fence-gold .fence-post { background: linear-gradient(135deg, #FFD700, #B8860B); box-shadow: 0 0 4px rgba(255,215,0,0.4); }
+
+        .fence-rail-h { position: absolute; left: 0; right: 0; height: 5px; z-index: 4; }
+        .fence-rail-h.top-rail { top: -5px; }
+        .fence-rail-h.bot-rail { bottom: -5px; }
+        .fence-rail-v { position: absolute; top: 0; bottom: 0; width: 5px; z-index: 4; }
+        .fence-rail-v.left-rail { left: -5px; }
+        .fence-rail-v.right-rail { right: -5px; }
+
+        #pen.fence-wood .fence-rail-h, #pen.fence-wood .fence-rail-v { background: linear-gradient(180deg, #c4944a, #8B6331); }
+        #pen.fence-stone .fence-rail-h, #pen.fence-stone .fence-rail-v { background: linear-gradient(180deg, #bbb, #888); }
+        #pen.fence-iron .fence-rail-h, #pen.fence-iron .fence-rail-v { background: linear-gradient(180deg, #7788aa, #3a4a5a); }
+        #pen.fence-gold .fence-rail-h, #pen.fence-gold .fence-rail-v { background: linear-gradient(180deg, #FFD700, #DAA520); box-shadow: 0 0 3px rgba(255,215,0,0.3); }
 
         #pen-label {
-            position: absolute; top: -26px; left: 50%;
-            transform: translateX(-50%);
-            background: #6d4c1a; color: #fff;
-            padding: 2px 14px; border-radius: 8px 8px 0 0;
-            font-size: 11px; font-weight: bold; white-space: nowrap; z-index: 6;
+            position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+            background: #6d4c1a; color: #fff; padding: 3px 14px;
+            border-radius: 8px 8px 0 0; font-size: 11px; font-weight: bold; white-space: nowrap; z-index: 6;
         }
 
-        /* 닭 */
-        .chicken {
-            position: absolute; transition: none;
-            cursor: pointer; z-index: 10;
-        }
-        .chicken .body {
-            display: block; line-height: 0;
-            animation: bob 0.8s ease-in-out infinite;
-            transition: filter 0.5s;
-        }
+        .chicken { position: absolute; transition: none; cursor: pointer; z-index: 10; }
+        .chicken .body { display: block; line-height: 0; animation: bob 0.8s ease-in-out infinite; transition: filter 0.5s; }
         .chicken .body svg { display: block; }
-        .chicken.egg .body svg { width: 20px; height: 26px; }
+        .chicken.egg .body svg { width: 22px; height: 28px; }
         .chicken.egg .body { animation: wobble 2s ease-in-out infinite; }
-        .chicken.chick .body svg { width: 30px; height: 30px; }
-        .chicken.young .body svg { width: 38px; height: 38px; }
-        .chicken.adult .body svg { width: 48px; height: 48px; }
+        .chicken.chick .body svg { width: 34px; height: 36px; }
+        .chicken.young .body svg { width: 42px; height: 44px; }
+        .chicken.adult .body svg { width: 52px; height: 54px; }
         .chicken.sleeping .body { animation: sleepBob 2s ease-in-out infinite; }
+        .chicken.egg.selected .body { filter: drop-shadow(0 0 6px #FFD700) drop-shadow(0 0 3px #FFD700) !important; }
 
         .chicken .needs {
-            position: absolute; top: -18px; left: 50%;
-            transform: translateX(-50%);
-            display: flex; gap: 1px; font-size: 11px;
-            white-space: nowrap;
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 1px; font-size: 11px; white-space: nowrap;
         }
         .need-icon { animation: pulse 1s ease-in-out infinite; }
-
-        .chicken .bars {
-            position: absolute; bottom: -12px; left: 50%;
-            transform: translateX(-50%); width: 32px;
-        }
+        .chicken .bars { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 32px; }
         .bar { width: 100%; height: 3px; background: rgba(0,0,0,0.25); border-radius: 2px; margin-bottom: 1px; }
         .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-
         .chicken.dying .body { animation: shake 0.3s ease-in-out infinite; }
 
-        /* 고양이 */
-        .cat {
-            position: absolute; z-index: 15; cursor: pointer;
-            transition: none;
-        }
-        .cat svg { width: 40px; height: 40px; }
-        .cat .cat-hp {
-            position: absolute; top: -8px; left: 50%;
-            transform: translateX(-50%); width: 30px; height: 3px;
-            background: rgba(0,0,0,0.3); border-radius: 2px;
-        }
+        .cat { position: absolute; z-index: 15; cursor: pointer; transition: none; }
+        .cat svg { width: 44px; height: 44px; }
+        .cat .cat-hp { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 34px; height: 4px; background: rgba(0,0,0,0.3); border-radius: 2px; }
         .cat .cat-hp-fill { height: 100%; background: #f44336; border-radius: 2px; transition: width 0.2s; }
-        .cat.hit { animation: catHit 0.2s ease; }
+        .cat .break-bar { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 34px; height: 3px; background: rgba(0,0,0,0.2); border-radius: 2px; }
+        .cat .break-bar-fill { height: 100%; background: #FF9800; border-radius: 2px; transition: width 0.2s; }
+        .cat.hit { animation: catHit 0.15s ease; }
+        .cat.breaking svg { animation: catClaw 0.6s ease-in-out infinite; }
 
         @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
         @keyframes sleepBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-1px)} }
         @keyframes wobble { 0%,100%{transform:rotate(0)} 25%{transform:rotate(5deg)} 75%{transform:rotate(-5deg)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px)} 75%{transform:translateX(2px)} }
-        @keyframes deathFade {
-            0%{opacity:1;transform:translateY(0) scale(1)}
-            50%{opacity:0.6;transform:translateY(-10px) scale(1.2)}
-            100%{opacity:0;transform:translateY(-40px) scale(0.3)}
-        }
-        @keyframes catHit { 0%{transform:scale(1)} 50%{transform:scale(0.85)} 100%{transform:scale(1)} }
-        @keyframes catFlee {
-            0%{opacity:1;transform:translateX(0)} 100%{opacity:0;transform:translateX(120px)}
-        }
+        @keyframes deathFade { 0%{opacity:1;transform:translateY(0) scale(1)} 50%{opacity:0.6;transform:translateY(-10px) scale(1.2)} 100%{opacity:0;transform:translateY(-40px) scale(0.3)} }
+        @keyframes catHit { 0%{transform:scale(1)} 50%{transform:scale(0.8)} 100%{transform:scale(1)} }
+        @keyframes catClaw { 0%,100%{transform:rotate(0)} 30%{transform:rotate(-8deg)} 60%{transform:rotate(8deg)} }
+        @keyframes catFlee { 0%{opacity:1;transform:translateX(0)} 100%{opacity:0;transform:translateX(120px)} }
         @keyframes floatUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-50px)} }
-        @keyframes zzzFloat {
-            0%{opacity:0;transform:translate(0,0) scale(0.5)}
-            30%{opacity:1}
-            100%{opacity:0;transform:translate(10px,-20px) scale(1.2)}
-        }
+        @keyframes zzzFloat { 0%{opacity:0;transform:translate(0,0) scale(0.5)} 30%{opacity:1} 100%{opacity:0;transform:translate(10px,-20px) scale(1.2)} }
+        @keyframes fenceShake { 0%,100%{transform:translate(-50%,-50%) rotate(0)} 25%{transform:translate(-50%,-50%) rotate(0.5deg)} 75%{transform:translate(-50%,-50%) rotate(-0.5deg)} }
+        @keyframes crackPulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.2)} }
 
-        .float-text {
-            position: absolute; font-weight: bold; font-size: 15px;
-            pointer-events: none; z-index: 200;
-            animation: floatUp 1.2s ease-out forwards;
-        }
-        .zzz {
-            position: absolute; font-size: 14px; pointer-events: none; z-index: 20;
-            animation: zzzFloat 2s ease-out infinite;
-            color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
+        .float-text { position: absolute; font-weight: bold; font-size: 15px; pointer-events: none; z-index: 200; animation: floatUp 1.2s ease-out forwards; }
+        .zzz { position: absolute; font-size: 14px; pointer-events: none; z-index: 20; animation: zzzFloat 2s ease-out infinite; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .crack { position: absolute; font-size: 20px; pointer-events: none; z-index: 200; animation: crackPulse 0.8s ease-in-out infinite; }
 
-        /* 하단 버튼 */
+        #pen.shaking { animation: fenceShake 0.3s ease-in-out infinite; }
+
         #bottom-bar {
             position: absolute; bottom: 0; left: 0; right: 0;
-            display: flex; gap: 4px; padding: 8px 6px;
+            display: flex; gap: 3px; padding: 6px 4px;
             justify-content: center; flex-wrap: wrap;
             background: rgba(0,0,0,0.35); z-index: 100;
         }
         .btn {
-            padding: 8px 10px; border: none; border-radius: 8px;
-            font-size: 12px; font-weight: bold; cursor: pointer; color: #fff;
-            display: flex; align-items: center; gap: 3px;
-            transition: transform 0.1s;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            padding: 7px 8px; border: none; border-radius: 8px;
+            font-size: 11px; font-weight: bold; cursor: pointer; color: #fff;
+            display: flex; align-items: center; gap: 2px;
+            transition: transform 0.1s; box-shadow: 0 2px 0 rgba(0,0,0,0.3);
         }
         .btn:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.3); }
-        .btn .price { font-size: 10px; opacity: 0.8; }
+        .btn .price { font-size: 9px; opacity: 0.8; }
         .btn-buy { background: #E91E63; }
         .btn-water { background: #2196F3; }
         .btn-worm { background: #8D6E63; }
         .btn-berry { background: #AB47BC; }
         .btn-fish { background: #00897B; }
-        .btn-collect { background: #9C27B0; }
-        .btn-upgrade { background: #4CAF50; }
         .btn-sell { background: #795548; }
+        .btn-expand { background: #4CAF50; }
+        .btn-fence { background: #FF6F00; }
         .btn-code { background: #607D8B; }
 
-        /* 메시지 */
         #message {
-            position: absolute; top: 46px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: #fff;
-            padding: 6px 14px; border-radius: 20px;
-            font-size: 13px; z-index: 200; opacity: 0;
+            position: absolute; top: 46px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: #fff; padding: 6px 14px;
+            border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0;
             transition: opacity 0.3s; white-space: nowrap;
         }
         #message.show { opacity: 1; }
 
-        /* 코드 모달 */
         #code-modal {
-            display: none; position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6); z-index: 400;
-            justify-content: center; align-items: center;
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 400; justify-content: center; align-items: center;
         }
         #code-modal.show { display: flex; }
         #code-box {
-            background: #fff; border-radius: 16px;
-            padding: 20px; text-align: center;
+            background: #fff; border-radius: 16px; padding: 20px; text-align: center;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3); min-width: 260px;
         }
         #code-box h3 { margin-bottom: 10px; font-size: 16px; color: #333; }
         #code-input {
-            width: 100%; padding: 8px 12px;
-            border: 2px solid #ddd; border-radius: 8px;
+            width: 100%; padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px;
             font-size: 15px; text-align: center; outline: none; margin-bottom: 10px;
         }
         #code-input:focus { border-color: #607D8B; }
         .code-btns { display: flex; gap: 8px; justify-content: center; }
-        .code-btn {
-            padding: 7px 18px; border: none; border-radius: 8px;
-            font-size: 13px; font-weight: bold; cursor: pointer; color: #fff;
-        }
+        .code-btn { padding: 7px 18px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; color: #fff; }
         .code-btn-ok { background: #4CAF50; }
         .code-btn-cancel { background: #999; }
 
-        /* 배경 장식 */
         #sun { position: absolute; top: 25px; right: 35px; font-size: 45px; animation: sunPulse 3s ease-in-out infinite; z-index: 1; }
         @keyframes sunPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
         .cloud { position: absolute; font-size: 35px; opacity: 0.6; z-index: 1; animation: drift 20s linear infinite; }
         @keyframes drift { 0%{transform:translateX(-100px)} 100%{transform:translateX(calc(100vw + 100px))} }
 
-        /* 시작 화면 */
         #start-screen {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(180deg, #FFB347 0%, #FF6B6B 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500;
         }
         #start-screen h1 { font-size: 44px; color: #fff; text-shadow: 3px 3px 0 rgba(0,0,0,0.2); margin-bottom: 8px; }
         #start-screen .subtitle { color: rgba(255,255,255,0.8); font-size: 15px; margin-bottom: 25px; }
         #start-screen .chickens-anim { font-size: 55px; margin-bottom: 25px; animation: bob 1s ease-in-out infinite; }
-        #start-btn {
-            padding: 14px 44px; font-size: 20px; font-weight: bold;
-            border: none; border-radius: 14px; background: #fff; color: #FF6B6B;
-            cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.15);
-        }
+        #start-btn { padding: 14px 44px; font-size: 20px; font-weight: bold; border: none; border-radius: 14px; background: #fff; color: #FF6B6B; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
         #start-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
 
-        /* 고양이 경고 */
         #cat-warning {
-            display: none; position: absolute; top: 70px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(200,0,0,0.8); color: #fff;
-            padding: 5px 14px; border-radius: 12px;
-            font-size: 13px; font-weight: bold; z-index: 150;
-            animation: pulse 0.8s ease-in-out infinite;
+            display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(200,0,0,0.8); color: #fff; padding: 5px 14px; border-radius: 12px;
+            font-size: 13px; font-weight: bold; z-index: 150; animation: pulse 0.8s ease-in-out infinite;
         }
         #cat-warning.show { display: block; }
     </style>
@@ -276,7 +210,6 @@
         <p class="subtitle">병아리부터 키워 나만의 농장을 만들자!</p>
         <button id="start-btn">게임 시작</button>
     </div>
-
     <div id="sun">☀️</div>
     <div class="cloud" style="top:55px;left:-50px;animation-duration:25s;">☁️</div>
     <div class="cloud" style="top:90px;left:-150px;animation-duration:35s;animation-delay:5s;">☁️</div>
@@ -284,13 +217,13 @@
 
     <div id="top-bar">
         <div class="resource"><span class="resource-icon">💰</span><span id="money">0</span></div>
-        <div class="resource"><span class="resource-icon">🐔</span><span id="count">0</span>/<span id="max-count">4</span></div>
+        <div class="resource"><span class="resource-icon">🐔</span><span id="count">0</span>/<span id="max-count">5</span></div>
         <div class="resource"><span class="resource-icon">🥚</span><span id="eggs">0</span></div>
         <div class="resource"><span class="resource-icon">😺</span><span id="cat-kills">0</span></div>
     </div>
 
-    <div id="pen">
-        <div id="pen-label">울타리 Lv.1</div>
+    <div id="pen" class="fence-wood">
+        <div id="pen-label">나무 울타리 Lv.1</div>
         <div class="fence-rail-h top-rail"></div>
         <div class="fence-rail-h bot-rail"></div>
         <div class="fence-rail-v left-rail"></div>
@@ -299,7 +232,7 @@
     </div>
 
     <div id="message"></div>
-    <div id="cat-warning">🐱 고양이가 나타났다! 터치해서 쫓아내세요!</div>
+    <div id="cat-warning">🐱 고양이다! 빨리 터치해서 쫓아내!</div>
 
     <div id="bottom-bar">
         <button class="btn btn-buy" onclick="buyChick()">🐣 병아리<span class="price">(100)</span></button>
@@ -307,9 +240,9 @@
         <button class="btn btn-worm" onclick="giveWorm()">🐛 벌레<span class="price">(30)</span></button>
         <button class="btn btn-berry" onclick="giveBerry()">🫐 열매<span class="price">(50)</span></button>
         <button class="btn btn-fish" onclick="giveFish()">🐟 생선<span class="price">(80)</span></button>
-        <button class="btn btn-collect" onclick="collectEggs()">🥚 수집</button>
-        <button class="btn btn-sell" onclick="sellEggs()">🥚 팔기<span class="price">(80)</span></button>
-        <button class="btn btn-upgrade" onclick="upgradePen()">🔨 확장</button>
+        <button class="btn btn-sell" onclick="sellEgg()">🥚 팔기<span class="price">(80원)</span></button>
+        <button class="btn btn-expand" onclick="expandPen()">📐 확장</button>
+        <button class="btn btn-fence" onclick="upgradeFence()">🛡️ 강화</button>
         <button class="btn btn-code" onclick="openCodeModal()">🔑 코드</button>
     </div>
 
@@ -326,160 +259,182 @@
 </div>
 
 <script>
-// ===== SVG 그래픽 =====
 function chickenSVG(stage) {
     switch(stage) {
-        case 'egg': return `<svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="20" cy="29" rx="15" ry="19" fill="#FFF5E0" stroke="#C9A84C" stroke-width="1.2"/>
-            <ellipse cx="20" cy="29" rx="13" ry="17" fill="#FFFBF0"/>
-            <circle cx="13" cy="24" r="2.5" fill="#E8D5A3" opacity="0.4"/>
-            <circle cx="26" cy="34" r="2" fill="#E8D5A3" opacity="0.35"/>
-            <circle cx="17" cy="38" r="1.5" fill="#E8D5A3" opacity="0.3"/>
-            <path d="M14,18 Q16,15 18,18" stroke="#C9A84C" stroke-width="0.8" fill="none" opacity="0.3"/>
+        case 'egg': return `<svg viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="eggG" cx="40%" cy="35%"><stop offset="0%" stop-color="#FFFDF5"/><stop offset="100%" stop-color="#F5E6C8"/></radialGradient></defs>
+            <ellipse cx="22" cy="30" rx="16" ry="21" fill="url(#eggG)" stroke="#C9A84C" stroke-width="1.5"/>
+            <ellipse cx="18" cy="22" rx="6" ry="8" fill="#fff" opacity="0.25"/>
+            <circle cx="14" cy="26" r="2" fill="#E0C88A" opacity="0.5"/>
+            <circle cx="28" cy="36" r="1.8" fill="#E0C88A" opacity="0.4"/>
+            <circle cx="18" cy="42" r="1.5" fill="#E0C88A" opacity="0.35"/>
+            <circle cx="25" cy="20" r="1.2" fill="#E0C88A" opacity="0.3"/>
         </svg>`;
 
-        case 'chick': return `<svg viewBox="0 0 50 55" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="25" cy="35" rx="13" ry="11" fill="#FFD54F"/>
-            <ellipse cx="25" cy="35" rx="11" ry="9" fill="#FFE082"/>
-            <ellipse cx="25" cy="37" rx="8" ry="5" fill="#FFF3C4" opacity="0.5"/>
-            <circle cx="25" cy="20" r="11" fill="#FFD54F"/>
-            <circle cx="25" cy="20" r="9" fill="#FFE082"/>
-            <circle cx="20" cy="18" r="3" fill="#fff"/>
-            <circle cx="20" cy="18" r="2" fill="#1a1a1a"/>
-            <circle cx="19.5" cy="17" r="0.8" fill="#fff"/>
-            <circle cx="30" cy="18" r="3" fill="#fff"/>
-            <circle cx="30" cy="18" r="2" fill="#1a1a1a"/>
-            <circle cx="29.5" cy="17" r="0.8" fill="#fff"/>
-            <path d="M23,23 L25,27 L27,23" fill="#FF8F00" stroke="#E65100" stroke-width="0.5"/>
-            <ellipse cx="14" cy="33" rx="4" ry="6" fill="#FFCA28" transform="rotate(-15 14 33)"/>
-            <ellipse cx="36" cy="33" rx="4" ry="6" fill="#FFCA28" transform="rotate(15 36 33)"/>
-            <line x1="20" y1="44" x2="18" y2="51" stroke="#FF8F00" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="30" y1="44" x2="32" y2="51" stroke="#FF8F00" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M16,51 L18,51 L20,49" stroke="#FF8F00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            <path d="M30,49 L32,51 L34,51" stroke="#FF8F00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            <circle cx="16" cy="22" r="2.5" fill="#FFAB40" opacity="0.35"/>
-            <circle cx="34" cy="22" r="2.5" fill="#FFAB40" opacity="0.35"/>
+        case 'chick': return `<svg viewBox="0 0 56 60" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="chickG" cx="45%" cy="40%"><stop offset="0%" stop-color="#FFF3C4"/><stop offset="100%" stop-color="#FFD54F"/></radialGradient></defs>
+            <ellipse cx="28" cy="38" rx="14" ry="12" fill="url(#chickG)" stroke="#E6B800" stroke-width="0.5"/>
+            <ellipse cx="28" cy="40" rx="9" ry="6" fill="#FFF8E1" opacity="0.4"/>
+            <circle cx="28" cy="21" r="12" fill="#FFD54F"/>
+            <circle cx="28" cy="21" r="10.5" fill="#FFE082"/>
+            <ellipse cx="24" cy="17" rx="4" ry="4.5" fill="#fff" opacity="0.2"/>
+            <path d="M25,11 Q27,8 29,11" fill="#FFB300" stroke="#FF8F00" stroke-width="0.3"/>
+            <circle cx="22" cy="19" r="3.5" fill="#fff"/>
+            <circle cx="22" cy="19.5" r="2.2" fill="#2c2c2c"/>
+            <circle cx="21" cy="18.5" r="1" fill="#fff"/>
+            <circle cx="34" cy="19" r="3.5" fill="#fff"/>
+            <circle cx="34" cy="19.5" r="2.2" fill="#2c2c2c"/>
+            <circle cx="33" cy="18.5" r="1" fill="#fff"/>
+            <path d="M26,24 L28,28 L30,24" fill="#FF8F00" stroke="#E65100" stroke-width="0.4"/>
+            <circle cx="19" cy="23" r="3" fill="#FFAB91" opacity="0.35"/>
+            <circle cx="37" cy="23" r="3" fill="#FFAB91" opacity="0.35"/>
+            <ellipse cx="16" cy="36" rx="4" ry="6" fill="#FFCA28" transform="rotate(-12 16 36)"/>
+            <ellipse cx="40" cy="36" rx="4" ry="6" fill="#FFCA28" transform="rotate(12 40 36)"/>
+            <line x1="22" y1="48" x2="20" y2="55" stroke="#FF8F00" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="34" y1="48" x2="36" y2="55" stroke="#FF8F00" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M18,55 L20,55 L22,53" stroke="#FF8F00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M32,53 L34,55 L36,55" stroke="#FF8F00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
         </svg>`;
 
-        case 'young': return `<svg viewBox="0 0 58 62" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="27" cy="40" rx="16" ry="13" fill="#F5A623"/>
-            <ellipse cx="27" cy="40" rx="14" ry="11" fill="#F7BC45"/>
-            <ellipse cx="27" cy="42" rx="10" ry="6" fill="#FCE4A1" opacity="0.4"/>
-            <path d="M41,33 Q50,26 47,34 Q49,30 43,36" fill="#D4850F"/>
-            <path d="M41,35 Q48,30 45,38" fill="#C17A0E" opacity="0.7"/>
-            <circle cx="27" cy="20" r="12" fill="#F5A623"/>
-            <circle cx="27" cy="20" r="10" fill="#F7BC45"/>
-            <path d="M24,9 Q26,3 28,7 Q30,3 32,9" fill="#E53935"/>
-            <circle cx="22" cy="18" r="3.2" fill="#fff"/>
-            <circle cx="22" cy="18" r="2.2" fill="#1a1a1a"/>
-            <circle cx="21.3" cy="17" r="0.9" fill="#fff"/>
-            <circle cx="33" cy="18" r="3.2" fill="#fff"/>
-            <circle cx="33" cy="18" r="2.2" fill="#1a1a1a"/>
-            <circle cx="32.3" cy="17" r="0.9" fill="#fff"/>
-            <path d="M25,23 L27,28 L29,23" fill="#E65100" stroke="#BF360C" stroke-width="0.5"/>
-            <ellipse cx="27" cy="30" rx="2" ry="2.5" fill="#E53935" opacity="0.7"/>
-            <ellipse cx="13" cy="38" rx="5" ry="8" fill="#E09520" transform="rotate(-12 13 38)"/>
-            <path d="M11,34 Q13,37 11,40" stroke="#C17A0E" fill="none" stroke-width="0.6"/>
-            <ellipse cx="41" cy="38" rx="5" ry="8" fill="#E09520" transform="rotate(12 41 38)"/>
-            <path d="M43,34 Q41,37 43,40" stroke="#C17A0E" fill="none" stroke-width="0.6"/>
-            <line x1="21" y1="51" x2="18" y2="59" stroke="#E65100" stroke-width="2.8" stroke-linecap="round"/>
-            <line x1="33" y1="51" x2="36" y2="59" stroke="#E65100" stroke-width="2.8" stroke-linecap="round"/>
-            <path d="M15,59 L18,59 L20,57" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <path d="M34,57 L36,59 L39,59" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <circle cx="18" cy="22" r="2.8" fill="#FFAB40" opacity="0.3"/>
-            <circle cx="36" cy="22" r="2.8" fill="#FFAB40" opacity="0.3"/>
+        case 'young': return `<svg viewBox="0 0 64 68" xmlns="http://www.w3.org/2000/svg">
+            <defs><radialGradient id="youngG" cx="45%" cy="40%"><stop offset="0%" stop-color="#FDCB6E"/><stop offset="100%" stop-color="#E67E22"/></radialGradient></defs>
+            <ellipse cx="30" cy="44" rx="17" ry="14" fill="url(#youngG)" stroke="#D35400" stroke-width="0.5"/>
+            <ellipse cx="30" cy="46" rx="11" ry="7" fill="#FDE68A" opacity="0.35"/>
+            <path d="M45,36 Q55,28 51,37 Q53,32 47,39" fill="#C0780E"/>
+            <path d="M45,38 Q52,33 49,40" fill="#A66908" opacity="0.7"/>
+            <circle cx="30" cy="22" r="13" fill="#E67E22"/>
+            <circle cx="30" cy="22" r="11" fill="#F39C12"/>
+            <ellipse cx="26" cy="18" rx="5" ry="5" fill="#fff" opacity="0.15"/>
+            <path d="M26,10 Q28,4 30,8 Q32,4 34,10" fill="#E74C3C"/>
+            <circle cx="30" cy="8" r="2" fill="#C0392B"/>
+            <circle cx="24" cy="20" r="3.5" fill="#fff"/>
+            <circle cx="24" cy="20.5" r="2.3" fill="#2c2c2c"/>
+            <circle cx="23" cy="19.5" r="1" fill="#fff"/>
+            <circle cx="36" cy="20" r="3.5" fill="#fff"/>
+            <circle cx="36" cy="20.5" r="2.3" fill="#2c2c2c"/>
+            <circle cx="35" cy="19.5" r="1" fill="#fff"/>
+            <path d="M28,25 L30,30 L32,25" fill="#E65100" stroke="#BF360C" stroke-width="0.5"/>
+            <ellipse cx="30" cy="33" rx="2" ry="2.8" fill="#E74C3C" opacity="0.7"/>
+            <circle cx="20" cy="24" r="3" fill="#FFAB91" opacity="0.3"/>
+            <circle cx="40" cy="24" r="3" fill="#FFAB91" opacity="0.3"/>
+            <ellipse cx="15" cy="42" rx="5.5" ry="9" fill="#D68910" transform="rotate(-10 15 42)"/>
+            <path d="M13,38 Q15,41 13,44" stroke="#B7770A" fill="none" stroke-width="0.6"/>
+            <ellipse cx="45" cy="42" rx="5.5" ry="9" fill="#D68910" transform="rotate(10 45 42)"/>
+            <path d="M47,38 Q45,41 47,44" stroke="#B7770A" fill="none" stroke-width="0.6"/>
+            <line x1="24" y1="56" x2="21" y2="64" stroke="#E65100" stroke-width="3" stroke-linecap="round"/>
+            <line x1="36" y1="56" x2="39" y2="64" stroke="#E65100" stroke-width="3" stroke-linecap="round"/>
+            <path d="M18,64 L21,64 L23,62" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M37,62 L39,64 L42,64" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
         </svg>`;
 
-        case 'adult': return `<svg viewBox="0 0 65 68" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="30" cy="44" rx="19" ry="16" fill="#EFEBE9"/>
-            <ellipse cx="30" cy="44" rx="17" ry="14" fill="#FAF5F0"/>
-            <ellipse cx="30" cy="47" rx="12" ry="7" fill="#fff" opacity="0.4"/>
-            <path d="M47,34 Q60,22 55,33" fill="#2E7D32" stroke="#1B5E20" stroke-width="0.5"/>
-            <path d="M47,37 Q62,27 57,38" fill="#388E3C"/>
-            <path d="M47,40 Q58,34 54,42" fill="#43A047" opacity="0.8"/>
-            <path d="M46,36 Q54,30 52,36" fill="#66BB6A" opacity="0.6"/>
-            <circle cx="30" cy="20" r="13" fill="#EFEBE9"/>
-            <circle cx="30" cy="20" r="11" fill="#FAF5F0"/>
-            <path d="M25,8 Q27,1 30,6 Q33,1 35,8" fill="#D32F2F"/>
-            <circle cx="30" cy="5" r="2.5" fill="#E53935"/>
-            <circle cx="27" cy="4" r="1.8" fill="#EF5350"/>
-            <circle cx="24" cy="18" r="3.5" fill="#fff"/>
-            <circle cx="24" cy="18" r="2.5" fill="#1a1a1a"/>
-            <circle cx="23.2" cy="17" r="1" fill="#fff"/>
-            <circle cx="36" cy="18" r="3.5" fill="#fff"/>
-            <circle cx="36" cy="18" r="2.5" fill="#1a1a1a"/>
-            <circle cx="35.2" cy="17" r="1" fill="#fff"/>
-            <path d="M28,23 L30,29 L32,23" fill="#E65100" stroke="#BF360C" stroke-width="0.6"/>
-            <line x1="28" y1="29" x2="32" y2="29" stroke="#BF360C" stroke-width="0.4"/>
-            <ellipse cx="30" cy="32" rx="3" ry="4" fill="#D32F2F"/>
-            <ellipse cx="30" cy="33" rx="2" ry="2.5" fill="#E53935"/>
-            <ellipse cx="12" cy="42" rx="7" ry="12" fill="#D7CCC8" transform="rotate(-8 12 42)"/>
-            <path d="M9,36 Q12,40 9,44" stroke="#BCAAA4" fill="none" stroke-width="0.8"/>
-            <path d="M11,38 Q13,41 11,44" stroke="#BCAAA4" fill="none" stroke-width="0.5"/>
-            <ellipse cx="48" cy="42" rx="7" ry="12" fill="#D7CCC8" transform="rotate(8 48 42)"/>
-            <path d="M51,36 Q48,40 51,44" stroke="#BCAAA4" fill="none" stroke-width="0.8"/>
-            <path d="M49,38 Q47,41 49,44" stroke="#BCAAA4" fill="none" stroke-width="0.5"/>
-            <line x1="24" y1="58" x2="20" y2="65" stroke="#E65100" stroke-width="3" stroke-linecap="round"/>
-            <line x1="36" y1="58" x2="40" y2="65" stroke="#E65100" stroke-width="3" stroke-linecap="round"/>
-            <path d="M17,65 L20,65 L22,63" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <path d="M38,63 L40,65 L43,65" stroke="#E65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+        case 'adult': return `<svg viewBox="0 0 72 76" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="adultG" cx="45%" cy="40%"><stop offset="0%" stop-color="#FFF8F0"/><stop offset="100%" stop-color="#EFEBE9"/></radialGradient>
+                <linearGradient id="tailG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2E7D32"/><stop offset="50%" stop-color="#1565C0"/><stop offset="100%" stop-color="#4A148C"/></linearGradient>
+            </defs>
+            <ellipse cx="33" cy="48" rx="20" ry="17" fill="url(#adultG)" stroke="#BCAAA4" stroke-width="0.5"/>
+            <ellipse cx="33" cy="51" rx="13" ry="8" fill="#fff" opacity="0.3"/>
+            <path d="M51,37 Q66,24 60,36" fill="url(#tailG)" stroke="#1B5E20" stroke-width="0.5"/>
+            <path d="M51,40 Q68,30 63,42" fill="#388E3C" opacity="0.9"/>
+            <path d="M51,43 Q62,37 58,45" fill="#43A047" opacity="0.7"/>
+            <path d="M50,39 Q58,34 56,40" fill="#66BB6A" opacity="0.5"/>
+            <circle cx="33" cy="22" r="14" fill="#EFEBE9"/>
+            <circle cx="33" cy="22" r="12" fill="#FAF5F0"/>
+            <ellipse cx="28" cy="17" rx="5" ry="5" fill="#fff" opacity="0.15"/>
+            <path d="M27,8 Q29,1 33,6 Q37,1 39,8" fill="#D32F2F"/>
+            <circle cx="33" cy="5" r="3" fill="#E53935"/>
+            <circle cx="30" cy="4" r="2" fill="#EF5350"/>
+            <circle cx="27" cy="6" r="1.5" fill="#E53935" opacity="0.7"/>
+            <circle cx="27" cy="20" r="4" fill="#fff"/>
+            <circle cx="27" cy="20.5" r="2.7" fill="#2c2c2c"/>
+            <circle cx="26" cy="19.5" r="1.1" fill="#fff"/>
+            <circle cx="40" cy="20" r="4" fill="#fff"/>
+            <circle cx="40" cy="20.5" r="2.7" fill="#2c2c2c"/>
+            <circle cx="39" cy="19.5" r="1.1" fill="#fff"/>
+            <path d="M31,26 L33,32 L35,26" fill="#E65100" stroke="#BF360C" stroke-width="0.6"/>
+            <line x1="31" y1="32" x2="35" y2="32" stroke="#BF360C" stroke-width="0.4"/>
+            <ellipse cx="33" cy="35" rx="3.5" ry="4.5" fill="#D32F2F"/>
+            <ellipse cx="33" cy="36" rx="2.5" ry="3" fill="#E53935"/>
+            <ellipse cx="14" cy="46" rx="8" ry="13" fill="#D7CCC8" transform="rotate(-8 14 46)"/>
+            <path d="M10,40 Q14,44 10,48" stroke="#BCAAA4" fill="none" stroke-width="0.8"/>
+            <path d="M12,42 Q14,45 12,48" stroke="#BCAAA4" fill="none" stroke-width="0.5"/>
+            <ellipse cx="52" cy="46" rx="8" ry="13" fill="#D7CCC8" transform="rotate(8 52 46)"/>
+            <path d="M56,40 Q52,44 56,48" stroke="#BCAAA4" fill="none" stroke-width="0.8"/>
+            <path d="M54,42 Q52,45 54,48" stroke="#BCAAA4" fill="none" stroke-width="0.5"/>
+            <line x1="27" y1="63" x2="23" y2="71" stroke="#E65100" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="39" y1="63" x2="43" y2="71" stroke="#E65100" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M20,71 L23,71 L25,69" stroke="#E65100" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <path d="M41,69 L43,71 L46,71" stroke="#E65100" stroke-width="2.2" fill="none" stroke-linecap="round"/>
         </svg>`;
     }
 }
 
 function catSVG() {
-    return `<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="25" cy="32" rx="14" ry="12" fill="#78909C"/>
-        <ellipse cx="25" cy="32" rx="12" ry="10" fill="#90A4AE"/>
-        <ellipse cx="25" cy="35" rx="7" ry="5" fill="#B0BEC5" opacity="0.5"/>
-        <path d="M38,32 Q48,35 42,28" fill="#78909C" stroke="#546E7A" stroke-width="0.5"/>
-        <circle cx="25" cy="18" r="10" fill="#78909C"/>
-        <circle cx="25" cy="18" r="8.5" fill="#90A4AE"/>
-        <polygon points="16,12 13,2 20,9" fill="#78909C"/>
-        <polygon points="17,11 14.5,4 19.5,9" fill="#FFAB91"/>
-        <polygon points="34,12 37,2 30,9" fill="#78909C"/>
-        <polygon points="33,11 35.5,4 30.5,9" fill="#FFAB91"/>
-        <circle cx="21" cy="16" r="2.5" fill="#C5E1A5"/>
-        <circle cx="21" cy="16" r="1.2" fill="#1a1a1a"/>
-        <circle cx="29" cy="16" r="2.5" fill="#C5E1A5"/>
-        <circle cx="29" cy="16" r="1.2" fill="#1a1a1a"/>
-        <ellipse cx="25" cy="20" rx="1.5" ry="1" fill="#FFAB91"/>
-        <path d="M22,22 Q25,24 28,22" stroke="#546E7A" stroke-width="0.6" fill="none"/>
-        <line x1="14" y1="18" x2="6" y2="16" stroke="#B0BEC5" stroke-width="0.6"/>
-        <line x1="14" y1="20" x2="6" y2="21" stroke="#B0BEC5" stroke-width="0.6"/>
-        <line x1="36" y1="18" x2="44" y2="16" stroke="#B0BEC5" stroke-width="0.6"/>
-        <line x1="36" y1="20" x2="44" y2="21" stroke="#B0BEC5" stroke-width="0.6"/>
-        <line x1="20" y1="42" x2="18" y2="48" stroke="#78909C" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="30" y1="42" x2="32" y2="48" stroke="#78909C" stroke-width="2.5" stroke-linecap="round"/>
+    return `<svg viewBox="0 0 55 55" xmlns="http://www.w3.org/2000/svg">
+        <defs><radialGradient id="catG" cx="45%" cy="40%"><stop offset="0%" stop-color="#B0BEC5"/><stop offset="100%" stop-color="#607D8B"/></radialGradient></defs>
+        <ellipse cx="27" cy="35" rx="15" ry="13" fill="url(#catG)" stroke="#455A64" stroke-width="0.5"/>
+        <ellipse cx="27" cy="37" rx="8" ry="5" fill="#CFD8DC" opacity="0.4"/>
+        <path d="M40,35 Q52,38 45,30" fill="#78909C" stroke="#546E7A" stroke-width="0.5"/>
+        <path d="M42,33 Q48,36 44,29" fill="#90A4AE" opacity="0.6"/>
+        <circle cx="27" cy="19" r="11" fill="#78909C"/>
+        <circle cx="27" cy="19" r="9.5" fill="#90A4AE"/>
+        <polygon points="17,13 14,2 22,10" fill="#78909C"/>
+        <polygon points="18,12 15.5,4 21,10" fill="#FFAB91" opacity="0.6"/>
+        <polygon points="37,13 40,2 32,10" fill="#78909C"/>
+        <polygon points="36,12 38.5,4 33,10" fill="#FFAB91" opacity="0.6"/>
+        <circle cx="22" cy="17" r="3" fill="#C5E1A5"/>
+        <circle cx="22" cy="17" r="1.5" fill="#1a1a1a"/>
+        <circle cx="21.5" cy="16.3" r="0.7" fill="#fff"/>
+        <circle cx="32" cy="17" r="3" fill="#C5E1A5"/>
+        <circle cx="32" cy="17" r="1.5" fill="#1a1a1a"/>
+        <circle cx="31.5" cy="16.3" r="0.7" fill="#fff"/>
+        <ellipse cx="27" cy="21" rx="1.8" ry="1.2" fill="#FFAB91"/>
+        <path d="M24,23 Q27,25 30,23" stroke="#546E7A" stroke-width="0.7" fill="none"/>
+        <line x1="15" y1="19" x2="6" y2="17" stroke="#B0BEC5" stroke-width="0.7"/>
+        <line x1="15" y1="21" x2="6" y2="22" stroke="#B0BEC5" stroke-width="0.7"/>
+        <line x1="39" y1="19" x2="48" y2="17" stroke="#B0BEC5" stroke-width="0.7"/>
+        <line x1="39" y1="21" x2="48" y2="22" stroke="#B0BEC5" stroke-width="0.7"/>
+        <line x1="22" y1="46" x2="20" y2="52" stroke="#78909C" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="32" y1="46" x2="34" y2="52" stroke="#78909C" stroke-width="2.5" stroke-linecap="round"/>
     </svg>`;
 }
 
 // ===== 게임 상수 =====
 const STAGES = {
-    egg:   { name:'알',     growTime:10000, nextStage:'chick' },
-    chick: { name:'병아리', growTime:20000, nextStage:'young' },
-    young: { name:'중병아리', growTime:30000, nextStage:'adult' },
-    adult: { name:'성닭',   growTime:null,  nextStage:null }
+    egg:   { name:'알',       growTime:300000,   nextStage:'chick' },
+    chick: { name:'병아리',   growTime:1200000,  nextStage:'young' },
+    young: { name:'중병아리', growTime:1200000,  nextStage:'adult' },
+    adult: { name:'성닭',     growTime:null,     nextStage:null }
 };
 
 const penSizes = [
-    { w: 300, h: 220, max: 5 },
-    { w: 380, h: 280, max: 10 },
-    { w: 460, h: 340, max: 16 },
-    { w: 540, h: 400, max: 24 },
-    { w: 620, h: 460, max: 34 },
+    { w:300, h:220, max:5 },
+    { w:380, h:280, max:10 },
+    { w:460, h:340, max:16 },
+    { w:540, h:400, max:24 },
+    { w:620, h:460, max:34 },
 ];
-const penUpgradeCost = [0, 400, 1000, 2500, 6000];
+const penExpandCost = [0, 500, 1200, 3000, 7000];
 
-let state = { money:700, storedEggs:0, penLevel:1, chickens:[], nextId:0, catKills:0 };
+const FENCE_TYPES = [
+    { name:'나무', cls:'fence-wood', breakTime:3000, cost:0 },
+    { name:'돌',   cls:'fence-stone', breakTime:6000, cost:600 },
+    { name:'철',   cls:'fence-iron', breakTime:12000, cost:2500 },
+    { name:'금',   cls:'fence-gold', breakTime:20000, cost:8000 },
+];
+
+let state = { money:700, penLevel:1, fenceLevel:1, chickens:[], nextId:0, catKills:0 };
 let gameStarted = false;
 let msgTimer = null;
 let cats = [];
 let catSpawnTimer = 0;
+let selectedEggId = null;
+let incomeCounter = 0;
 
 function getPenConfig() { return penSizes[Math.min(state.penLevel-1, penSizes.length-1)]; }
+function getFenceType() { return FENCE_TYPES[Math.min(state.fenceLevel-1, FENCE_TYPES.length-1)]; }
 
-// ===== UI 헬퍼 =====
+// ===== UI =====
 function showMsg(t) {
     const el = document.getElementById('message');
     el.textContent = t; el.classList.add('show');
@@ -499,9 +454,11 @@ function buildFence() {
     const pen = document.getElementById('pen');
     pen.querySelectorAll('.fence-post').forEach(p => p.remove());
     const cfg = getPenConfig();
-    const postCount = Math.floor(cfg.w / 30);
+    const ft = getFenceType();
+    pen.className = ft.cls;
+    const postCount = Math.floor(cfg.w / 28);
     for (let i = 0; i <= postCount; i++) {
-        const x = (i / postCount) * (cfg.w - 8);
+        const x = (i / postCount) * (cfg.w - 10);
         ['top','bottom'].forEach(side => {
             const post = document.createElement('div');
             post.className = `fence-post ${side}`;
@@ -509,15 +466,13 @@ function buildFence() {
             pen.appendChild(post);
         });
     }
-    const vPostCount = Math.floor(cfg.h / 30);
+    const vPostCount = Math.floor(cfg.h / 28);
     for (let i = 0; i <= vPostCount; i++) {
-        const y = (i / vPostCount) * (cfg.h - 8);
+        const y = (i / vPostCount) * (cfg.h - 10);
         ['left','right'].forEach(side => {
             const post = document.createElement('div');
             post.className = `fence-post ${side}`;
             post.style.top = y + 'px';
-            if (side === 'left') post.style.left = '-12px';
-            else post.style.right = '-12px';
             pen.appendChild(post);
         });
     }
@@ -525,18 +480,21 @@ function buildFence() {
 
 function updateUI() {
     document.getElementById('money').textContent = state.money;
-    document.getElementById('eggs').textContent = state.storedEggs;
+    const eggCount = state.chickens.filter(c => c.stage==='egg').length;
+    const nonEggCount = state.chickens.filter(c => c.stage!=='egg').length;
+    document.getElementById('eggs').textContent = eggCount;
     document.getElementById('cat-kills').textContent = state.catKills;
     const cfg = getPenConfig();
-    document.getElementById('count').textContent = state.chickens.length;
+    document.getElementById('count').textContent = nonEggCount;
     document.getElementById('max-count').textContent = cfg.max;
     const pen = document.getElementById('pen');
     pen.style.width = cfg.w+'px'; pen.style.height = cfg.h+'px';
+    const ft = getFenceType();
     document.getElementById('pen-label').textContent =
-        `울타리 Lv.${state.penLevel} (${state.chickens.length}/${cfg.max})`;
+        `${ft.name} 울타리 Lv.${state.penLevel} (${state.chickens.length}/${cfg.max})`;
 }
 
-// ===== 닭 관리 =====
+// ===== 닭 =====
 function addChickenEl(c) {
     const el = document.createElement('div');
     el.className = `chicken ${c.stage}`;
@@ -548,24 +506,23 @@ function addChickenEl(c) {
         <div class="bars">
             <div class="bar"><div class="bar-fill" data-bar="growth" style="width:0%;background:#4CAF50"></div></div>
             <div class="bar"><div class="bar-fill" data-bar="hp" style="width:100%;background:#f44336"></div></div>
-        </div>
-    `;
+        </div>`;
     el.addEventListener('click', () => onClickChicken(c.id));
     document.getElementById('pen-inner').appendChild(el);
 }
 
 function createChicken(stage, x, y) {
     const cfg = getPenConfig();
-    const innerW = cfg.w - 16, innerH = cfg.h - 16;
+    const innerW = cfg.w-20, innerH = cfg.h-20;
     const id = state.nextId++;
     const c = {
         id, stage,
-        x: x ?? Math.random()*(innerW-50)+5,
-        y: y ?? Math.random()*(innerH-50)+5,
+        x: x ?? Math.random()*(innerW-55)+5,
+        y: y ?? Math.random()*(innerH-60)+5,
         hunger:100, thirst:100, hp:100, energy:100,
         growth:0, eggTimer:0,
         vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6,
-        layReady:false, fromHen:false, sleeping:false, collisionCd:0
+        layReady:false, sleeping:false, collisionCd:0
     };
     state.chickens.push(c);
     addChickenEl(c);
@@ -575,16 +532,31 @@ function createChicken(stage, x, y) {
 function onClickChicken(id) {
     const c = state.chickens.find(ch => ch.id===id);
     if (!c) return;
+    if (c.stage === 'egg') {
+        if (selectedEggId === id) { selectedEggId = null; }
+        else { selectedEggId = id; }
+        updateEggSelection();
+        if (selectedEggId === id) showMsg('🥚 알 선택됨! 팔기 버튼으로 판매');
+        return;
+    }
     const info = STAGES[c.stage];
     let s = `${info.name}`;
-    if (c.stage!=='adult' && STAGES[c.stage].growTime) s += ` 성장:${Math.floor(c.growth)}%`;
+    if (STAGES[c.stage].growTime) s += ` 성장:${Math.floor(c.growth)}%`;
     s += ` ❤️${Math.floor(c.hp)} 🍗${Math.floor(c.hunger)} 💧${Math.floor(c.thirst)} ⚡${Math.floor(c.energy)}`;
     if (c.sleeping) s += ' 💤자는중';
     if (c.layReady) s += ' 🥚알!';
     showMsg(s);
 }
 
-// ===== 먹이 / 물 =====
+function updateEggSelection() {
+    document.querySelectorAll('.chicken.egg').forEach(el => el.classList.remove('selected'));
+    if (selectedEggId !== null) {
+        const el = document.getElementById(`chicken-${selectedEggId}`);
+        if (el) el.classList.add('selected');
+    }
+}
+
+// ===== 먹이/물 =====
 function feedChickens(cost, hungerAdd, thirstAdd, growBonus, foodName) {
     if (state.money < cost) return showMsg('돈이 부족합니다!');
     const targets = state.chickens.filter(c => c.stage!=='egg' && (c.hunger<80 || c.thirst<80));
@@ -596,12 +568,9 @@ function feedChickens(cost, hungerAdd, thirstAdd, growBonus, foodName) {
         t.hunger = Math.min(100, t.hunger + hungerAdd);
         t.thirst = Math.min(100, t.thirst + thirstAdd);
         if (growBonus && STAGES[t.stage].growTime) t.growth = Math.min(100, t.growth + growBonus);
-        if (t.sleeping && t.energy > 30) { t.sleeping = false; }
+        if (t.sleeping && t.energy > 30) t.sleeping = false;
         const el = document.getElementById(`chicken-${t.id}`);
-        if (el) {
-            const r = el.getBoundingClientRect();
-            floatText(r.left, r.top-10, foodName, '#4CAF50');
-        }
+        if (el) { const r = el.getBoundingClientRect(); floatText(r.left, r.top-10, foodName, '#4CAF50'); }
     }
     showMsg(`${foodName} ${count}마리에게 줬습니다!`);
     updateUI();
@@ -609,8 +578,8 @@ function feedChickens(cost, hungerAdd, thirstAdd, growBonus, foodName) {
 
 function giveWater() { feedChickens(20, 0, 45, 0, '💧'); }
 function giveWorm() { feedChickens(30, 35, 0, 2, '🐛'); }
-function giveBerry() { feedChickens(50, 30, 15, 5, '🫐'); }
-function giveFish() { feedChickens(80, 50, 10, 8, '🐟'); }
+function giveBerry() { feedChickens(50, 30, 15, 3, '🫐'); }
+function giveFish() { feedChickens(80, 50, 10, 5, '🐟'); }
 
 function buyChick() {
     if (state.money<100) return showMsg('돈이 부족합니다!');
@@ -622,66 +591,71 @@ function buyChick() {
     updateUI();
 }
 
-function collectEggs() {
-    const layers = state.chickens.filter(c => c.layReady);
-    if (layers.length===0) return showMsg('수집할 알이 없습니다!');
-    let count=0;
-    layers.forEach(c => {
-        c.layReady=false; c.eggTimer=0; count++;
-        const cfg = getPenConfig();
-        if (state.chickens.length < cfg.max && Math.random()<0.5) {
-            const egg = createChicken('egg', c.x+10, c.y+10);
-            egg.fromHen = true;
-        } else { state.storedEggs++; }
-    });
-    showMsg(`🥚 알 ${count}개 수집!`);
-    updateUI();
+function sellEgg() {
+    if (selectedEggId !== null) {
+        const c = state.chickens.find(ch => ch.id===selectedEggId);
+        if (c && c.stage==='egg') {
+            state.money += 80;
+            const el = document.getElementById(`chicken-${selectedEggId}`);
+            if (el) { el.style.animation='deathFade 0.5s ease-out forwards'; setTimeout(()=>el.remove(),500); }
+            state.chickens = state.chickens.filter(ch => ch.id !== selectedEggId);
+            selectedEggId = null;
+            showMsg('🥚 알 판매! +80원');
+            updateUI();
+            return;
+        }
+    }
+    showMsg('알을 먼저 클릭해서 선택하세요!');
 }
 
-function sellEggs() {
-    if (state.storedEggs<=0) return showMsg('팔 알이 없습니다!');
-    const earn = state.storedEggs*80;
-    state.money += earn;
-    showMsg(`🥚 ${state.storedEggs}개 → ${earn}원!`);
-    state.storedEggs=0;
-    updateUI();
-}
-
-function upgradePen() {
-    if (state.penLevel>=penSizes.length) return showMsg('최대 레벨!');
-    const cost = penUpgradeCost[state.penLevel];
-    if (state.money<cost) return showMsg(`${cost}원 필요!`);
+function expandPen() {
+    if (state.penLevel >= penSizes.length) return showMsg('최대 크기!');
+    const cost = penExpandCost[state.penLevel];
+    if (state.money < cost) return showMsg(`${cost}원 필요!`);
     state.money -= cost;
     state.penLevel++;
     buildFence();
-    showMsg(`🔨 울타리 Lv.${state.penLevel}!`);
+    showMsg(`📐 울타리 확장 Lv.${state.penLevel}!`);
+    updateUI();
+}
+
+function upgradeFence() {
+    if (state.fenceLevel >= FENCE_TYPES.length) return showMsg('최고급 울타리!');
+    const next = FENCE_TYPES[state.fenceLevel];
+    if (state.money < next.cost) return showMsg(`${next.cost}원 필요!`);
+    state.money -= next.cost;
+    state.fenceLevel++;
+    buildFence();
+    const ft = getFenceType();
+    showMsg(`🛡️ ${ft.name} 울타리로 강화!`);
     updateUI();
 }
 
 // ===== 고양이 =====
 function spawnCat() {
     const cfg = getPenConfig();
-    const innerW = cfg.w-16, innerH = cfg.h-16;
+    const innerW = cfg.w-20, innerH = cfg.h-20;
     const side = Math.floor(Math.random()*4);
-    let x,y;
-    if (side===0) { x=-30; y=Math.random()*innerH; }
-    else if (side===1) { x=innerW+10; y=Math.random()*innerH; }
-    else if (side===2) { x=Math.random()*innerW; y=-30; }
-    else { x=Math.random()*innerW; y=innerH+10; }
+    let x, y;
+    if (side===0) { x=-10; y=Math.random()*(innerH-40); }
+    else if (side===1) { x=innerW-30; y=Math.random()*(innerH-40); }
+    else if (side===2) { x=Math.random()*(innerW-40); y=-10; }
+    else { x=Math.random()*(innerW-40); y=innerH-30; }
 
-    const cat = { id: Date.now(), x, y, clickHp:15, maxHp:15 };
+    const ft = getFenceType();
+    const cat = { id:Date.now(), x, y, clickHp:15, maxHp:15, phase:'breaking', breakTimer:ft.breakTime, maxBreakTime:ft.breakTime };
     cats.push(cat);
 
     const el = document.createElement('div');
-    el.className = 'cat'; el.id = `cat-${cat.id}`;
+    el.className = 'cat breaking'; el.id = `cat-${cat.id}`;
     el.style.left = x+'px'; el.style.top = y+'px';
-    el.innerHTML = `<div class="cat-hp"><div class="cat-hp-fill" style="width:100%"></div></div>${catSVG()}`;
-    el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        hitCat(cat.id);
-    });
+    el.innerHTML = `<div class="break-bar"><div class="break-bar-fill" style="width:100%"></div></div><div class="cat-hp"><div class="cat-hp-fill" style="width:100%"></div></div>${catSVG()}`;
+    el.addEventListener('click', (e) => { e.stopPropagation(); hitCat(cat.id); });
     document.getElementById('pen-inner').appendChild(el);
+
+    document.getElementById('pen').classList.add('shaking');
     document.getElementById('cat-warning').classList.add('show');
+    showMsg('🐱 고양이가 울타리를 부수고 있다!');
 }
 
 function hitCat(id) {
@@ -690,9 +664,7 @@ function hitCat(id) {
     cat.clickHp--;
     const el = document.getElementById(`cat-${id}`);
     if (el) {
-        el.classList.remove('hit');
-        void el.offsetWidth;
-        el.classList.add('hit');
+        el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
         const hpFill = el.querySelector('.cat-hp-fill');
         hpFill.style.width = (cat.clickHp/cat.maxHp*100)+'%';
         const r = el.getBoundingClientRect();
@@ -708,7 +680,10 @@ function hitCat(id) {
         state.catKills++;
         state.money += 50;
         showMsg('🐱 고양이를 쫓아냈다! +50원!');
-        if (cats.length===0) document.getElementById('cat-warning').classList.remove('show');
+        if (cats.length===0) {
+            document.getElementById('cat-warning').classList.remove('show');
+            document.getElementById('pen').classList.remove('shaking');
+        }
         updateUI();
     }
 }
@@ -718,18 +693,49 @@ function gameLoop() {
     if (!gameStarted) return;
     const dt = 100;
     const cfg = getPenConfig();
-    const innerW = cfg.w-16, innerH = cfg.h-16;
+    const innerW = cfg.w-20, innerH = cfg.h-20;
     const toRemove = [];
+
+    // 자동 수입: 1원/초
+    incomeCounter += dt;
+    if (incomeCounter >= 1000) {
+        state.money += 1;
+        incomeCounter = 0;
+    }
 
     // 고양이 스폰
     catSpawnTimer += dt;
-    if (catSpawnTimer > 30000 + Math.random()*30000 && state.chickens.length > 0 && cats.length < 2) {
+    if (catSpawnTimer > 35000 + Math.random()*30000 && state.chickens.filter(c=>c.stage!=='egg').length > 0 && cats.length < 2) {
         spawnCat();
         catSpawnTimer = 0;
     }
 
-    // 고양이 이동 + 공격
+    // 고양이 로직
     cats.forEach(cat => {
+        const el = document.getElementById(`cat-${cat.id}`);
+
+        if (cat.phase === 'breaking') {
+            cat.breakTimer -= dt;
+            if (el) {
+                const bbf = el.querySelector('.break-bar-fill');
+                if (bbf) bbf.style.width = (cat.breakTimer/cat.maxBreakTime*100)+'%';
+            }
+            if (cat.breakTimer <= 0) {
+                cat.phase = 'inside';
+                if (el) {
+                    el.classList.remove('breaking');
+                    el.querySelector('.break-bar').style.display='none';
+                }
+                document.getElementById('pen').classList.remove('shaking');
+                showMsg('🐱 고양이가 울타리를 뚫고 들어왔다!');
+                const cfg2 = getPenConfig();
+                cat.x = Math.max(5, Math.min(cfg2.w-60, cat.x));
+                cat.y = Math.max(5, Math.min(cfg2.h-60, cat.y));
+            }
+            if (el) { el.style.left=cat.x+'px'; el.style.top=cat.y+'px'; }
+            return;
+        }
+
         let nearest = null, nearDist = Infinity;
         state.chickens.forEach(c => {
             if (c.stage==='egg') return;
@@ -739,56 +745,42 @@ function gameLoop() {
         if (nearest) {
             const dx = nearest.x-cat.x, dy = nearest.y-cat.y;
             const dist = Math.hypot(dx,dy);
-            if (dist > 5) {
-                cat.x += (dx/dist)*0.4;
-                cat.y += (dy/dist)*0.4;
-            }
-            if (dist < 20) {
-                nearest.hp = Math.max(0, nearest.hp-0.1);
-            }
+            if (dist > 5) { cat.x += (dx/dist)*0.5; cat.y += (dy/dist)*0.5; }
+            if (dist < 25) nearest.hp = Math.max(0, nearest.hp-0.15);
         }
-        const el = document.getElementById(`cat-${cat.id}`);
+        cat.x = Math.max(-5, Math.min(innerW-30, cat.x));
+        cat.y = Math.max(-5, Math.min(innerH-30, cat.y));
         if (el) { el.style.left=cat.x+'px'; el.style.top=cat.y+'px'; }
     });
 
     state.chickens.forEach(c => {
         if (c.collisionCd > 0) c.collisionCd -= dt;
 
-        // 수면 처리
+        // 수면
         if (c.stage !== 'egg') {
             c.energy = Math.max(0, c.energy - 0.005);
-            if (c.energy < 10 && !c.sleeping) {
-                c.sleeping = true;
-                c.vx = 0; c.vy = 0;
-            }
-            if (c.sleeping) {
-                c.energy = Math.min(100, c.energy + 0.025);
-                if (c.energy > 85) c.sleeping = false;
-            }
+            if (c.energy < 10 && !c.sleeping) { c.sleeping = true; c.vx = 0; c.vy = 0; }
+            if (c.sleeping) { c.energy = Math.min(100, c.energy + 0.025); if (c.energy > 85) c.sleeping = false; }
         }
 
         // 이동
         if (c.stage !== 'egg' && !c.sleeping) {
             const spd = c.hp < 30 ? 0.3 : (c.hunger < 20 || c.thirst < 20) ? 0.5 : 1;
-            if (Math.random() < 0.02) {
-                c.vx = (Math.random()-0.5)*1.0*spd;
-                c.vy = (Math.random()-0.5)*1.0*spd;
-            }
+            if (Math.random() < 0.02) { c.vx = (Math.random()-0.5)*1.0*spd; c.vy = (Math.random()-0.5)*1.0*spd; }
             c.x += c.vx*spd; c.y += c.vy*spd;
-            c.x = Math.max(3, Math.min(innerW-48, c.x));
-            c.y = Math.max(3, Math.min(innerH-55, c.y));
-            if (c.x<=3||c.x>=innerW-48) c.vx*=-1;
-            if (c.y<=3||c.y>=innerH-55) c.vy*=-1;
+            c.x = Math.max(3, Math.min(innerW-55, c.x));
+            c.y = Math.max(3, Math.min(innerH-60, c.y));
+            if (c.x<=3||c.x>=innerW-55) c.vx*=-1;
+            if (c.y<=3||c.y>=innerH-60) c.vy*=-1;
         }
 
-        // 충돌 체크
+        // 충돌
         if (c.stage!=='egg' && c.collisionCd<=0) {
             state.chickens.forEach(other => {
                 if (other.id===c.id || other.stage==='egg' || other.collisionCd>0) return;
                 const dist = Math.hypot(c.x-other.x, c.y-other.y);
-                if (dist < 18) {
-                    c.hp = Math.max(0, c.hp-1.5);
-                    other.hp = Math.max(0, other.hp-1.5);
+                if (dist < 20) {
+                    c.hp = Math.max(0, c.hp-1.5); other.hp = Math.max(0, other.hp-1.5);
                     c.collisionCd = 2000; other.collisionCd = 2000;
                     const dx = c.x-other.x, dy = c.y-other.y;
                     const nd = Math.hypot(dx,dy) || 1;
@@ -819,22 +811,22 @@ function gameLoop() {
         if (c.hp<=0 && c.stage!=='egg') {
             const el = document.getElementById(`chicken-${c.id}`);
             if (el) {
-                el.style.animation='deathFade 1s ease-out forwards';
-                el.style.pointerEvents='none';
-                const r=el.getBoundingClientRect();
-                floatText(r.left,r.top-20,'💀','#f44336');
+                el.style.animation='deathFade 1s ease-out forwards'; el.style.pointerEvents='none';
+                const r=el.getBoundingClientRect(); floatText(r.left,r.top-20,'💀','#f44336');
                 setTimeout(()=>el.remove(),1000);
             }
-            toRemove.push(c.id);
-            return;
+            toRemove.push(c.id); return;
         }
 
         // 성장
         const si = STAGES[c.stage];
-        if (si.growTime && c.hunger>20 && c.thirst>20 && !c.sleeping) {
+        const canGrow = c.stage==='egg' || (c.hunger>20 && c.thirst>20 && !c.sleeping);
+        if (si.growTime && canGrow) {
             c.growth += (dt/si.growTime)*100;
             if (c.growth>=100) {
+                if (c.stage==='egg' && selectedEggId===c.id) selectedEggId = null;
                 c.stage=si.nextStage; c.growth=0; c.hp=100; c.energy=100;
+                c.hunger=100; c.thirst=100;
                 const el=document.getElementById(`chicken-${c.id}`);
                 if (el) {
                     el.className=`chicken ${c.stage}`;
@@ -848,32 +840,33 @@ function gameLoop() {
         // 알 낳기
         if (c.stage==='adult' && !c.layReady && c.hunger>30 && c.thirst>30 && c.hp>30 && !c.sleeping) {
             c.eggTimer += dt;
-            if (c.eggTimer>=15000) {
-                c.layReady=true;
-                const el=document.getElementById(`chicken-${c.id}`);
-                if (el) { const r=el.getBoundingClientRect(); floatText(r.left,r.top-20,'🥚','#9C27B0'); }
+            if (c.eggTimer>=20000) {
+                c.layReady = true;
+                const cfg2 = getPenConfig();
+                if (state.chickens.length < cfg2.max) {
+                    createChicken('egg', c.x+10, c.y+10);
+                    c.layReady = false; c.eggTimer = 0;
+                    const el=document.getElementById(`chicken-${c.id}`);
+                    if (el) { const r=el.getBoundingClientRect(); floatText(r.left,r.top-20,'🥚','#9C27B0'); }
+                }
             }
         }
 
-        // 비주얼 업데이트
+        // 비주얼
         const el = document.getElementById(`chicken-${c.id}`);
         if (!el) return;
         el.style.left=c.x+'px'; el.style.top=c.y+'px';
 
-        // 상태에 따른 어두워지기
-        const condition = (c.hp/100*0.4) + (c.hunger/100*0.3) + (c.thirst/100*0.3);
-        const brightness = 0.3 + condition*0.7;
-        const saturation = 0.2 + condition*0.8;
-        const bodyEl = el.querySelector('.body');
-        bodyEl.style.filter = `brightness(${brightness}) saturate(${saturation})`;
+        if (c.stage !== 'egg') {
+            const condition = (c.hp/100*0.4) + (c.hunger/100*0.3) + (c.thirst/100*0.3);
+            const brightness = 0.3 + condition*0.7;
+            const saturation = 0.2 + condition*0.8;
+            el.querySelector('.body').style.filter = `brightness(${brightness}) saturate(${saturation})`;
+        }
 
-        // 클래스
-        if (c.hp<30 && c.stage!=='egg') el.classList.add('dying');
-        else el.classList.remove('dying');
-        if (c.sleeping) el.classList.add('sleeping');
-        else el.classList.remove('sleeping');
+        if (c.hp<30 && c.stage!=='egg') el.classList.add('dying'); else el.classList.remove('dying');
+        if (c.sleeping) el.classList.add('sleeping'); else el.classList.remove('sleeping');
 
-        // Zzz 이펙트
         let zzz = el.querySelector('.zzz');
         if (c.sleeping && !zzz) {
             zzz = document.createElement('span');
@@ -882,7 +875,6 @@ function gameLoop() {
             el.appendChild(zzz);
         } else if (!c.sleeping && zzz) { zzz.remove(); }
 
-        // 필요 표시
         const needsEl = el.querySelector('.needs');
         let needs='';
         if (c.stage!=='egg') {
@@ -890,17 +882,15 @@ function gameLoop() {
             if (c.thirst<30 && !c.sleeping) needs+='<span class="need-icon">💧</span>';
             if (c.hunger<30 && !c.sleeping) needs+='<span class="need-icon">🍗</span>';
             if (c.energy<20 && !c.sleeping) needs+='<span class="need-icon">😴</span>';
-            if (c.layReady) needs+='<span class="need-icon">🥚</span>';
         }
         needsEl.innerHTML=needs;
 
-        // 바 업데이트
         const growBar = el.querySelector('[data-bar="growth"]');
         const hpBar = el.querySelector('[data-bar="hp"]');
         if (si.growTime) {
             growBar.parentElement.style.display='block';
             growBar.style.width=c.growth+'%';
-            growBar.style.background=(c.hunger<=20||c.thirst<=20)?'#f44336':'#4CAF50';
+            growBar.style.background = c.stage==='egg' ? '#9C27B0' : (c.hunger<=20||c.thirst<=20)?'#f44336':'#4CAF50';
         } else { growBar.parentElement.style.display='none'; }
 
         if (c.stage!=='egg') {
@@ -909,7 +899,7 @@ function gameLoop() {
             hpBar.style.background=c.hp<30?'#f44336':c.hp<60?'#FF9800':'#4CAF50';
         } else { hpBar.parentElement.style.display='none'; }
 
-        // 방향
+        const bodyEl = el.querySelector('.body');
         if (c.vx<0) bodyEl.style.transform='scaleX(-1)';
         else if (c.vx>0) bodyEl.style.transform='scaleX(1)';
     });
@@ -918,13 +908,18 @@ function gameLoop() {
         state.chickens = state.chickens.filter(c => !toRemove.includes(c.id));
         showMsg(`💀 닭 ${toRemove.length}마리가 죽었습니다...`);
     }
+
+    if (selectedEggId !== null && !state.chickens.find(c=>c.id===selectedEggId)) {
+        selectedEggId = null;
+    }
+
     updateUI();
 }
 
-// ===== 시작 / 저장 =====
+// ===== 시작/저장 =====
 function startGame() {
     document.getElementById('start-screen').style.display='none';
-    gameStarted=true;
+    gameStarted = true;
     buildFence();
     updateUI();
     showMsg('🐔 농장 시작! 병아리를 사보세요!');
@@ -932,19 +927,21 @@ function startGame() {
 
 setInterval(gameLoop, 100);
 
-function saveGame() { localStorage.setItem('chickenGame2', JSON.stringify(state)); }
+function saveGame() { localStorage.setItem('chickenGame3', JSON.stringify(state)); }
 function loadGame() {
-    const s = localStorage.getItem('chickenGame2');
+    const s = localStorage.getItem('chickenGame3');
     if (s) {
         try {
             state = JSON.parse(s);
             if (!state.catKills) state.catKills=0;
+            if (!state.fenceLevel) state.fenceLevel=1;
             state.chickens.forEach(c => {
                 if (c.energy===undefined) c.energy=100;
                 if (c.sleeping===undefined) c.sleeping=false;
                 if (c.collisionCd===undefined) c.collisionCd=0;
                 addChickenEl(c);
             });
+            buildFence();
             updateUI();
             return true;
         } catch(e) {}
@@ -953,14 +950,14 @@ function loadGame() {
 }
 setInterval(saveGame, 5000);
 
-// ===== 코드 시스템 =====
+// ===== 코드 =====
 const CODES = {
     '치킨만세': { money:1000, msg:'💰 1,000원!' },
     '부자닭': { money:5000, msg:'💰 5,000원!' },
-    '물폭탄': { money:0, thirst:true, msg:'💧 모두에게 물!' },
-    '사료대방출': { money:0, hunger:true, msg:'🌾 모두에게 사료!' },
+    '물폭탄': { thirst:true, msg:'💧 모두에게 물!' },
+    '사료대방출': { hunger:true, msg:'🌾 모두에게 사료!' },
     '풀세트': { money:3000, hunger:true, thirst:true, msg:'🎁 돈 3000 + 풀케어!' },
-    '알부자': { eggs:10, msg:'🥚 알 10개!' },
+    '알부자': { eggs:5, msg:'🥚 알 5개 생성!' },
     '치킨이최고': { money:10000, hunger:true, thirst:true, msg:'👑 만원 + 풀케어!' },
 };
 
@@ -976,7 +973,10 @@ function submitCode() {
     const r = CODES[code];
     if (r) {
         if (r.money) state.money += r.money;
-        if (r.eggs) state.storedEggs += r.eggs;
+        if (r.eggs) {
+            const cfg = getPenConfig();
+            for (let i=0; i<r.eggs && state.chickens.length<cfg.max; i++) createChicken('egg');
+        }
         if (r.hunger) state.chickens.forEach(c => { if(c.stage!=='egg') c.hunger=100; });
         if (r.thirst) state.chickens.forEach(c => { if(c.stage!=='egg') c.thirst=100; });
         showMsg(r.msg);
