@@ -973,8 +973,6 @@ const CODES = {
     '알부자': { eggs: 10, msg: '🥚 알 10개 획득!' },
     '치킨이최고': { money: 10000, water: 30, feed: 30, msg: '👑 만원 + 물 30 + 사료 30 대박!' },
 };
-const usedCodes = new Set();
-
 function openCodeModal() {
     document.getElementById('code-modal').classList.add('show');
     const input = document.getElementById('code-input');
@@ -991,15 +989,8 @@ function submitCode() {
     const code = input.value.trim();
     if (!code) return;
 
-    if (usedCodes.has(code)) {
-        showMsg('이미 사용한 코드입니다!');
-        closeCodeModal();
-        return;
-    }
-
     const reward = CODES[code];
     if (reward) {
-        usedCodes.add(code);
         if (reward.money) state.money += reward.money;
         if (reward.water) state.water += reward.water;
         if (reward.feed) state.feed += reward.feed;
